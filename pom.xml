@@ -20,10 +20,20 @@
     <protobuf.version>3.21.7</protobuf.version>
     <mockito.version>4.11.0</mockito.version>
     <junit5.version>5.9.1</junit5.version>
-    <hazelcast.version>3.6.5</hazelcast.version>
+    <hazelcast.version>3.8.6</hazelcast.version>
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelcast</artifactId>
+        <version>${hazelcast.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelcast-client</artifactId>
+        <version>${hazelcast.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.hazelcast</groupId>
         <artifactId>hazelcast-all</artifactId>
