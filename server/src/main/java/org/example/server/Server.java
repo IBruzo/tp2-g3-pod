@@ -21,21 +21,24 @@ public class Server {
         // Group Config
         GroupConfig groupConfig = new GroupConfig().setName("g0").setPassword("g0-pass");
         config.setGroupConfig(groupConfig);
-    // Network Config
+        // Network Config
         MulticastConfig multicastConfig = new MulticastConfig();
         JoinConfig joinConfig = new JoinConfig().setMulticastConfig(multicastConfig);
         InterfacesConfig interfacesConfig = new InterfacesConfig()
-                .setInterfaces(Collections.singletonList("192.168.0.*")).setEnabled(true);
-        NetworkConfig networkConfig = new
-                NetworkConfig().setInterfaces(interfacesConfig).setJoin(joinConfig);
+                .setInterfaces(Collections.singletonList("192.168.1.*")).setEnabled(true);
+        NetworkConfig networkConfig = new NetworkConfig().setInterfaces(interfacesConfig).setJoin(joinConfig);
         config.setNetworkConfig(networkConfig);
- /*   // Management Center Config
-        ManagementCenterConfig managementCenterConfig = new ManagementCenterConfig()
-                .setUrl("http://localhost:8080/mancenter/")
-                .setEnabled(true);
-        config.setManagementCenterConfig(managementCenterConfig);*/
-    // Start cluster
+
+        /*
+         * // Management Center Config
+         * ManagementCenterConfig managementCenterConfig = new ManagementCenterConfig()
+         * .setUrl("http://localhost:8080/mancenter/")
+         * .setEnabled(true);
+         * config.setManagementCenterConfig(managementCenterConfig);
+         */
+        // Start cluster
 
         Hazelcast.newHazelcastInstance(config);
 
-    }}
+    }
+}

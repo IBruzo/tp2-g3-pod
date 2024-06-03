@@ -29,6 +29,13 @@
       <artifactId>annotations-api</artifactId>
       <scope>provided</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.32</version>
+        <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <extensions>
@@ -56,6 +63,16 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+            <includes>
+                <include>**/*.class</include>
+            </includes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
