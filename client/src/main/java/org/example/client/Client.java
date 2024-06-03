@@ -8,6 +8,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.example.models.InfractionChicago;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

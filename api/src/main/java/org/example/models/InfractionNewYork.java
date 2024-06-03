@@ -1,3 +1,5 @@
+package org.example.models;
+
 public class InfractionNewYork {
     // Plate;Issue Date;InfractionCode;
     // Fine Amount;County Name;Issuing Agency
