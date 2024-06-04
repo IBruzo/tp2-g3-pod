@@ -13,8 +13,12 @@ import java.util.Collections;
 public class Server {
     private static Logger logger = LoggerFactory.getLogger(Server.class);
 
+    private static final String DEFAULT_INTERFACE = "127.0.0.*";
+
     public static void main(String[] args) throws InterruptedException, IOException {
         logger.info(" Server Starting ...");
+
+        String interfaceProperty = System.getProperty("interface",DEFAULT_INTERFACE);
 
         // Config
         Config config = new Config();
@@ -25,7 +29,7 @@ public class Server {
         MulticastConfig multicastConfig = new MulticastConfig();
         JoinConfig joinConfig = new JoinConfig().setMulticastConfig(multicastConfig);
         InterfacesConfig interfacesConfig = new InterfacesConfig()
-                .setInterfaces(Collections.singletonList("192.168.1.*")).setEnabled(true);
+                .setInterfaces(Collections.singletonList(interfaceProperty)).setEnabled(true);
         NetworkConfig networkConfig = new NetworkConfig().setInterfaces(interfacesConfig).setJoin(joinConfig);
         config.setNetworkConfig(networkConfig);
 

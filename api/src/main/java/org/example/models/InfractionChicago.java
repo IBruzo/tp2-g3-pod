@@ -19,6 +19,7 @@ public class InfractionChicago implements Serializable {
     private Date infractionDate;
     private String licensePlateNumber;
     private String violationCode; // reference to the infractionsCHI.csv
-    private String unitDescription;
+    private String unitDescription; //agencia
     private String communityAreaName;
+    private int fineAmount;
 }
