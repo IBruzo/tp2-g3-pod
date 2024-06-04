@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class InfractionChicago {
+public class InfractionChicago implements Serializable {
 
     // issue_date;license_plate_number;violation_code;unit_description;fine_level1_amount;community_area_name
     // 2005-03-10

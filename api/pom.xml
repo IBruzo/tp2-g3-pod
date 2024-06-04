@@ -39,6 +39,11 @@
         <version>1.18.32</version>
         <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-all</artifactId>
+      <version>${hazelcast.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <extensions>

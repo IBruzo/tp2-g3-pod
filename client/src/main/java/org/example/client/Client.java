@@ -5,9 +5,16 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.core.IMap;
+import com.hazelcast.mapreduce.Job;
+import com.hazelcast.mapreduce.JobTracker;
+import com.hazelcast.mapreduce.KeyValueSource;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+
+import org.example.mappers.IdentityFunctionMapper;
 import org.example.models.InfractionChicago;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +25,18 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final String CSV_FILE = "infractionsCHI.csv";
+    private static final String CSV_FILE = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/ticketsCHI.csv";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         logger.info("hz-config Client Starting ...");
         // Client Config
         ClientConfig clientConfig = new ClientConfig();
@@ -48,10 +58,17 @@ public class Client {
 
         IMap<String, InfractionChicago> infractionMap = hazelcastInstance.getMap("infractionsChicago");
 
+        System.out.println("Infraction Map (should be empty) : " + infractionMap);
+
         try (BufferedReader br = new BufferedReader(new FileReader(CSV_FILE))) {
-            String line;
+            String line = br.readLine();
+            if (line == null){
+                System.out.println("Empty CSV");
+                return;
+            }
             AtomicInteger idCounter = new AtomicInteger();
-            while ((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null && idCounter.get() < 300) {
+                System.out.println(line);
                 String[] values = line.split(";");
                 Date date = parseDate(values[0] + " " + values[1]);
                 String licensePlateNumber = values[2];
@@ -68,6 +85,20 @@ public class Client {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Infraction Map (should NOT be empty) : ");
+        System.out.println(infractionMap);
+
+        JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
+        KeyValueSource<String, InfractionChicago> source = KeyValueSource.fromMap(infractionMap);
+        Job<String, InfractionChicago> job = jobTracker.newJob(source);
+
+        ICompletableFuture<Map<String, List<InfractionChicago>>> future = job
+                .mapper(new IdentityFunctionMapper())
+                .submit();
+
+        Map<String, List<InfractionChicago>> result = future.get();
+        System.out.println(result);
 
         // Shutdown
         HazelcastClient.shutdownAll();
