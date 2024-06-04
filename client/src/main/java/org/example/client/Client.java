@@ -12,6 +12,7 @@ import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
 
 import org.example.models.InfractionChicago;
+import org.example.query1.TicketsPerInfractionCollator;
 import org.example.query1.TicketsPerInfractionMapper;
 import org.example.query1.TicketsPerInfractionReducers;
 import org.slf4j.Logger;
@@ -29,8 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static final String CSV_FILE = "/Users/felixlopezmenardi/Documents/pod/csv-tp2/ticketsCHI.csv";
-    private static final String CSV_CODES = "/Users/felixlopezmenardi/Documents/pod/csv-tp2/infractionsCHI.csv";
+    private static final String CSV_FILE = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/ticketsCHI.csv";
+    private static final String CSV_CODES = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/infractionsCHI.csv";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         logger.info("hz-config Client Starting ...");
@@ -103,7 +104,7 @@ public class Client {
         ICompletableFuture<Map<String, Integer>> future = job
                 .mapper(new TicketsPerInfractionMapper(validKeys))
                 .reducer(new TicketsPerInfractionReducers.TicketsPerInfractionReducerFactory())
-                .submit();
+                .submit(new TicketsPerInfractionCollator());
 
         Map<String, Integer> result = future.get();
         System.out.println(result);
