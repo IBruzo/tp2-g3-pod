@@ -6,6 +6,7 @@ import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
+import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
@@ -28,21 +29,22 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class Query5 {
-    private static final Logger logger = LoggerFactory.getLogger(Query1.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query5.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY =  "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
+    private static final String DEFAULT_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
 
-        String addressProperty = System.getProperty("addresses",DEFAULT_ADDRESS);
+        String addressProperty = System.getProperty("addresses", DEFAULT_ADDRESS);
         String[] addresses = addressProperty.split(";");
-        String cityProperty = System.getProperty("city",DEFAULT_CITY);
-        String inPath = System.getProperty("inPath",DEFAULT_DIRECTORY); //directory
-        String outPath = System.getProperty("outPath",DEFAULT_WRITE_DIRECTORY); //directory
+        String cityProperty = System.getProperty("city", DEFAULT_CITY);
+        String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
+        String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
 
         // Client Config
         ClientConfig clientConfig = new ClientConfig();
@@ -56,17 +58,17 @@ public class Query5 {
         clientConfig.setNetworkConfig(clientNetworkConfig);
         HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
 
-        IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractionsChicago");
-        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codesChicago");
+        IList<Infraction> infractionList = hazelcastInstance.getList("infractions");
+        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
 
         DocumentUtils documentUtils = new DocumentUtils();
 
-        documentUtils.readCSV(infractionMap,codeInfraction,cityProperty,inPath);
+        documentUtils.readCSV(infractionList, codeInfraction, cityProperty, inPath);
 
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
-        KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
+        KeyValueSource<String, Infraction> source = KeyValueSource.fromList(infractionList);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
         ICompletableFuture<Map<Integer, List<Pair<String, String>>>> future = job

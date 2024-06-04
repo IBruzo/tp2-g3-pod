@@ -7,6 +7,7 @@ import org.example.models.Infraction;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class TicketsPerInfractionMapper implements Mapper<String, Infraction, String, Integer> {
     private final Set<String> codeMap;
 
@@ -16,7 +17,7 @@ public class TicketsPerInfractionMapper implements Mapper<String, Infraction, St
 
     @Override
     public void map(String key, Infraction value, Context<String, Integer> context) {
-        if(codeMap.contains(value.getViolationCode()))
+        if (codeMap.contains(value.getViolationCode()))
             context.emit(value.getViolationCode(), 1);
     }
 }

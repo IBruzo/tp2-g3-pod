@@ -3,6 +3,7 @@ package org.example.query1;
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 
+@SuppressWarnings("deprecation")
 public class TicketsPerInfractionReducerFactory implements ReducerFactory<String, Integer, Integer> {
 
     @Override

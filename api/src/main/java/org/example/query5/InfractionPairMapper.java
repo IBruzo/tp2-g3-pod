@@ -6,6 +6,7 @@ import org.example.models.Infraction;
 
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class InfractionPairMapper implements Mapper<String, Infraction, String, Double> {
     private final Set<String> codeMap;
 
@@ -16,7 +17,7 @@ public class InfractionPairMapper implements Mapper<String, Infraction, String, 
     @Override
     public void map(String key, Infraction value, Context<String, Double> context) {
         // Infraction Code validation
-        if(codeMap.contains(value.getViolationCode()))
+        if (codeMap.contains(value.getViolationCode()))
             context.emit(value.getViolationCode(), value.getFineAmount());
     }
 }

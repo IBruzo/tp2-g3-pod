@@ -19,7 +19,7 @@ public class Infraction implements Serializable {
     private LocalDate infractionDate;
     private String licensePlateNumber;
     private String violationCode; // reference to the infractionsCHI.csv
-    private String unitDescription; //agencia
+    private String unitDescription; // agencia
     private String communityAreaName;
     private double fineAmount;
 }

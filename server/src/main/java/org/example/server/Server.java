@@ -18,7 +18,7 @@ public class Server {
     public static void main(String[] args) throws InterruptedException, IOException {
         logger.info(" Server Starting ...");
 
-        String interfaceProperty = System.getProperty("interface",DEFAULT_INTERFACE);
+        String interfaceProperty = System.getProperty("interface", DEFAULT_INTERFACE);
 
         // Config
         Config config = new Config();
