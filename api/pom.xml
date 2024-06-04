@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>tp2-g3-pod-api</artifactId>
-  <groupId>com.example</groupId>
+  <groupId>org.example</groupId>
   <version>1.0-SNAPSHOT</version>
   <name>tp2-g3-pod-api</name>
   <packaging>jar</packaging>
