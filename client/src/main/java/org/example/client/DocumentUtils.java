@@ -30,7 +30,7 @@ public class DocumentUtils {
 
           String[] header = line.split(";");
 
-          int[] indexes = {0,0,0,0,0,0}; // date plate violation agency amount community
+          int[] indexes = {0,0,0,0,0,0}; //ORDEN DE LOS INDICES CON LOS CAMPOS: date plate violation agency amount community
           for(int i =0; i<=5 ;i++ ){
               header[i] =  header[i].toLowerCase();
               if(header[i].contains("date")){
@@ -44,17 +44,13 @@ public class DocumentUtils {
               } else if (header[i].contains("fine")) {
                   indexes[4]=i;
               } else if (header[i].equals("community_area_name") || header[i].equals("county name")) {
-                  System.out.println(header[i]);
                   indexes[5]=i;
               }
           }
 
-
-
           AtomicInteger idCounter = new AtomicInteger();
           while ((line = br.readLine()) != null && idCounter.get() < 300) {
               String[] values = line.split(";");
-              System.out.println(values[indexes[0]]);
               LocalDate date = parseDate(values[indexes[0]]); //arreglar? values[0] es asi: 2020-01-01 00:00:00
               String licensePlateNumber = values[indexes[1]];
               String violationCode = values[indexes[2]];
