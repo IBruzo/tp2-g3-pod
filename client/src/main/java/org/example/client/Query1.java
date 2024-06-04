@@ -36,10 +36,10 @@ public class Query1 {
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY =  "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\"; //"/afs/it.itba.edu.ar/pub/pod/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\"; //"/afs/it.itba.edu.ar/pub/pod-write/";
+    private static final String DEFAULT_DIRECTORY =  "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/"; //"/afs/it.itba.edu.ar/pub/pod/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/"; //"/afs/it.itba.edu.ar/pub/pod-write/";
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
 
         String addressProperty = System.getProperty("addresses",DEFAULT_ADDRESS);
@@ -82,6 +82,8 @@ public class Query1 {
 
         Map<String, Integer> result = future.get();
         System.out.println(result);
+
+        DocumentUtils.writeQuery1CSV(outPath + "query1_results.csv", result);
 
         // Shutdown
         HazelcastClient.shutdownAll();

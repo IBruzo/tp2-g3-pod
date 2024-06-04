@@ -1,16 +1,22 @@
 package org.example.client;
 
 import com.hazelcast.core.IMap;
+import lombok.Cleanup;
 import org.example.models.Infraction;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DocumentUtils {
@@ -98,6 +104,19 @@ public class DocumentUtils {
         } catch (DateTimeParseException e) {
             System.err.println("Invalid date format: " + dateString);
             return null;
+        }
+    }
+
+    public static void writeQuery1CSV(String path, Map<String, Integer> data) throws IOException {
+        @Cleanup BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(path),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE
+        );
+
+        writer.write("Infraction;Tickets\n");
+        for (Map.Entry<String, Integer> entry : data.entrySet()) {
+            writer.write(entry.getKey() + ";" + entry.getValue() + "\n");
         }
     }
 
