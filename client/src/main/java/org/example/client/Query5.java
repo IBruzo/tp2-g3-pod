@@ -10,28 +10,24 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
-
-
 import org.example.models.Infraction;
+import org.example.models.Pair;
 import org.example.query1.TicketsPerInfractionCollator;
 import org.example.query1.TicketsPerInfractionMapper;
-import org.example.query1.TicketsPerInfractionReducerFactory;
+import org.example.query5.InfractionPairCollator;
+import org.example.query5.InfractionPairMapper;
+import org.example.query5.InfractionPairReducerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class Query1 {
+public class Query5 {
     private static final Logger logger = LoggerFactory.getLogger(Query1.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
@@ -63,8 +59,6 @@ public class Query1 {
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractionsChicago");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codesChicago");
 
-        System.out.println("Infraction Map (should be empty) : " + infractionMap);
-
         DocumentUtils documentUtils = new DocumentUtils();
 
         documentUtils.readCSV(infractionMap,codeInfraction,cityProperty,inPath);
@@ -75,15 +69,15 @@ public class Query1 {
         KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
-        ICompletableFuture<Map<String, Integer>> future = job
-                .mapper(new TicketsPerInfractionMapper(validKeys))
-                .reducer(new TicketsPerInfractionReducerFactory())
-                .submit(new TicketsPerInfractionCollator(codeInfraction));
+        ICompletableFuture<Map<Integer, List<Pair<String, String>>>> future = job
+                .mapper(new InfractionPairMapper(validKeys))
+                .reducer(new InfractionPairReducerFactory())
+                .submit(new InfractionPairCollator(codeInfraction));
 
-        Map<String, Integer> result = future.get();
+        Map<Integer, List<Pair<String, String>>> result = future.get();
         System.out.println(result);
 
-        DocumentUtils.writeQuery1CSV(outPath + "query1_results.csv", result);
+        DocumentUtils.writeQuery2CSV(outPath + "query2_results.csv", result);
 
         // Shutdown
         HazelcastClient.shutdownAll();

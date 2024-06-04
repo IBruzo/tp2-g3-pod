@@ -1,17 +1,24 @@
 package org.example.query1;
 
+import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Collator;
 
 import java.util.*;
 
 public class TicketsPerInfractionCollator implements Collator<Map.Entry<String, Integer>, Map<String, Integer>> {
+    IMap<String, String> codeInfraction;
+
+    public TicketsPerInfractionCollator(IMap<String, String> codeInfraction) {
+        this.codeInfraction = codeInfraction;
+        System.out.println("collate code infraction map: " + codeInfraction);
+    }
 
     @Override
     public Map<String, Integer> collate(Iterable<Map.Entry<String, Integer>> iterable) {
         Map<String, Integer> filteredInfractions = new HashMap<>();
         for (Map.Entry<String, Integer> entry : iterable) {
             if (entry.getValue() > 0) {
-                filteredInfractions.put(entry.getKey(), entry.getValue());
+                filteredInfractions.put(codeInfraction.get(entry.getKey()), entry.getValue());
             }
         }
 
@@ -19,6 +26,7 @@ public class TicketsPerInfractionCollator implements Collator<Map.Entry<String, 
         sortedFilteredInfractions.sort((e1, e2) -> {
             int quantityComparison = e2.getValue().compareTo(e1.getValue());
             if (quantityComparison == 0) {
+                //if the infractions have the same amount of tickets, tie break using alphabetical order
                 return e1.getKey().compareTo(e2.getKey());
             }
             return quantityComparison;

@@ -3,6 +3,7 @@ package org.example.client;
 import com.hazelcast.core.IMap;
 import lombok.Cleanup;
 import org.example.models.Infraction;
+import org.example.models.Pair;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -117,6 +119,21 @@ public class DocumentUtils {
         writer.write("Infraction;Tickets\n");
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
             writer.write(entry.getKey() + ";" + entry.getValue() + "\n");
+        }
+    }
+
+    public static void writeQuery2CSV(String path, Map<Integer, List<Pair<String, String>>> data) throws IOException {
+        @Cleanup BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(path),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE
+        );
+
+        writer.write("Group;Infraction A;Infraction B\n");
+        for (Map.Entry<Integer, List<Pair<String, String>>> entry : data.entrySet()) {
+            for(Pair<String, String> pair : entry.getValue()) {
+                writer.write(entry.getKey() + ";" + pair.getFirst() + ";" + pair.getSecond() + "\n");
+            }
         }
     }
 

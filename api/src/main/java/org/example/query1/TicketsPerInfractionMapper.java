@@ -4,6 +4,7 @@ import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;
 import org.example.models.Infraction;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class TicketsPerInfractionMapper implements Mapper<String, Infraction, String, Integer> {
