@@ -1,16 +1,14 @@
 package org.example.mappers;
 
-import java.util.StringTokenizer;
-
-import org.example.models.InfractionChicago;
+import org.example.models.Infraction;
 
 import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;
 
-public class IdentityFunctionMapper implements Mapper<String, InfractionChicago, String, InfractionChicago> {
+public class IdentityFunctionMapper implements Mapper<String, Infraction, String, Infraction> {
 
     @Override
-    public void map(String key, InfractionChicago value, Context<String, InfractionChicago> context) {
+    public void map(String key, Infraction value, Context<String, Infraction> context) {
         context.emit(key, value);
     }
 }
