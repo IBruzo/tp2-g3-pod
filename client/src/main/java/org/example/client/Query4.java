@@ -16,6 +16,9 @@ import org.example.models.Infraction;
 import org.example.query1.TicketsPerInfractionCollator;
 import org.example.query1.TicketsPerInfractionMapper;
 import org.example.query1.TicketsPerInfractionReducerFactory;
+import org.example.query4.InfractionsInNeighborhoodCollator;
+import org.example.query4.InfractionsInNeighborhoodMapper;
+import org.example.query4.InfractionsInNeighborhoodReducerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +33,17 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+public class Query4 {
 
-public class Query1 {
     private static final Logger logger = LoggerFactory.getLogger(Query1.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
+    private static final String DEFAULT_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_FROM = "01/01/1970";
+    private static final String DEFAULT_TO = "31/12/2023";
+
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -68,21 +74,19 @@ public class Query1 {
 
         documentUtils.readCSV(infractionList, codeInfraction, cityProperty, inPath);
 
-        Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
-
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
         KeyValueSource<String, Infraction> source = KeyValueSource.fromList(infractionList);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
-        ICompletableFuture<Map<String, Integer>> future = job
-                .mapper(new TicketsPerInfractionMapper(validKeys))
-                .reducer(new TicketsPerInfractionReducerFactory())
-                .submit(new TicketsPerInfractionCollator(codeInfraction));
+        ICompletableFuture<List<String>> future = job
+                .mapper(new InfractionsInNeighborhoodMapper(DEFAULT_FROM, DEFAULT_TO))
+                .reducer(new InfractionsInNeighborhoodReducerFactory())
+                .submit(new InfractionsInNeighborhoodCollator());
 
-        Map<String, Integer> result = future.get();
+        List<String> result = future.get();
         //System.out.println(result);
 
-        DocumentUtils.writeQuery1CSV(outPath + "query1_results.csv", result);
+        DocumentUtils.writeQuery4CSV(outPath + "query4_results.csv", result);
 
         // Shutdown
         HazelcastClient.shutdownAll();

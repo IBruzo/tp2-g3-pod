@@ -177,4 +177,17 @@ public class DocumentUtils {
         }
     }
 
+    public static void writeQuery4CSV(String path, List<String> data) throws IOException {
+        @Cleanup
+        BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(path),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE);
+
+        writer.write("Neighborhood;License Plate;Tickets\n");
+        for (String entry : data) {
+            writer.write(entry + "\n");
+        }
+    }
+
 }
