@@ -15,9 +15,11 @@ import org.example.models.Infraction;
 import org.example.models.Pair;
 import org.example.query1.TicketsPerInfractionCollator;
 import org.example.query1.TicketsPerInfractionMapper;
+import org.example.query1.TicketsPerInfractionReducerFactory;
+import org.example.query2.PopularInfractionsCollator;
+import org.example.query2.PopularInfractionsMapper;
+import org.example.query2.PopularInfractionsReducerFactory;
 import org.example.query5.InfractionPairCollator;
-import org.example.query5.InfractionPairMapper;
-import org.example.query5.InfractionPairReducerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,13 +30,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-public class Query5 {
-    private static final Logger logger = LoggerFactory.getLogger(Query5.class);
+public class Query2 {
+    private static final Logger logger = LoggerFactory.getLogger(Query2.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/home/joaquin/Desktop/hazelcast/client/src/main/resources/";
+    private static final String DEFAULT_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
+    private static final String DEFAULT_WRITE_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -71,18 +73,17 @@ public class Query5 {
         KeyValueSource<String, Infraction> source = KeyValueSource.fromList(infractionList);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
-        ICompletableFuture<Map<Integer, List<Pair<String, String>>>> future = job
-                .mapper(new InfractionPairMapper(validKeys))
-                .reducer(new InfractionPairReducerFactory())
-                .submit(new InfractionPairCollator(codeInfraction));
+        ICompletableFuture<Map<String, List<String>>> future = job
+                .mapper(new PopularInfractionsMapper(validKeys))
+                .reducer(new PopularInfractionsReducerFactory())
+                .submit(new PopularInfractionsCollator(codeInfraction));
 
-        Map<Integer, List<Pair<String, String>>> result = future.get();
-        System.out.println(result);
+        Map<String, List<String>> result = future.get();
 
-        DocumentUtils.writeQuery5CSV(outPath + "query2_results.csv", result);
+
+        DocumentUtils.writeQuery2CSV(outPath + "query2_results.csv", result);
 
         // Shutdown
         HazelcastClient.shutdownAll();
     }
-
 }

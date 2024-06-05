@@ -125,7 +125,27 @@ public class DocumentUtils {
         }
     }
 
-    public static void writeQuery2CSV(String path, Map<Integer, List<Pair<String, String>>> data) throws IOException {
+    public static void writeQuery2CSV(String path, Map<String, List<String>> data) throws IOException {
+        @Cleanup
+        BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(path),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE);
+
+        writer.write("County;InfractionTop1;InfractionTop2;InfractionTop3\n");
+        for (Map.Entry<String, List<String>> entry : data.entrySet()) {
+            StringBuilder line = new StringBuilder();
+            line.append(entry.getKey()).append(";");
+            for (String infraction : entry.getValue()) {
+               line.append(infraction).append(";");
+            }
+            line.deleteCharAt(line.length() - 1);
+            line.append("\n");
+            writer.write(line.toString());
+        }
+    }
+
+    public static void writeQuery5CSV(String path, Map<Integer, List<Pair<String, String>>> data) throws IOException {
         @Cleanup
         BufferedWriter writer = Files.newBufferedWriter(
                 Path.of(path),
