@@ -10,9 +10,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -135,6 +137,23 @@ public class DocumentUtils {
             for (Pair<String, String> pair : entry.getValue()) {
                 writer.write(entry.getKey() + ";" + pair.getFirst() + ";" + pair.getSecond() + "\n");
             }
+        }
+    }
+
+    public static void writeQuery3CSV(String path, List<Pair<String,Double>> data) throws IOException {
+        @Cleanup
+        BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(path),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE);
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        df.setRoundingMode(RoundingMode.DOWN);
+
+        writer.write("Issuing Agency;Percentage\n");
+
+        for (Pair<String, Double> entry : data) {
+            writer.write(entry.getFirst() + ";" + df.format( entry.getSecond()) + "%" + "\n");
         }
     }
 
