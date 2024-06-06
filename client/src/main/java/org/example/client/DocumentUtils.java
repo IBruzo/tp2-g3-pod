@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class DocumentUtils {
 
@@ -42,7 +43,7 @@ public class DocumentUtils {
             String[] header = line.split(";");
 
             int[] indexes = { 0, 0, 0, 0, 0, 0 }; // ORDEN DE LOS INDICES CON LOS CAMPOS: date plate violation agency
-                                                  // amount community
+
             for (int i = 0; i <= 5; i++) {
                 header[i] = header[i].toLowerCase();
                 if (header[i].contains("date")) {
@@ -60,23 +61,9 @@ public class DocumentUtils {
                 }
             }
 
-            int csvLines = 0;
-            while ((line = br.readLine()) != null && csvLines < 1000) {
-                String[] values = line.split(";");
-                LocalDate date = parseDate(values[indexes[0]]); // arreglar? values[0] es asi: 2020-01-01 00:00:00
-                String licensePlateNumber = values[indexes[1]];
-                String violationCode = values[indexes[2]];
-                String unitDescription = values[indexes[3]];
-                String fineAmount = values[indexes[4]];
-                String communityAreaName = values[indexes[5]];
+         infractionList.addAll(  parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
 
-                Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
-                        communityAreaName, Double.parseDouble(fineAmount));
-
-                infractionList.add(infraction);
-                csvLines++;
-            }
-        } catch (IOException | ParseException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -96,6 +83,32 @@ public class DocumentUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static List<Infraction> parseInfractionsFile(String path, int[] indexes) throws IOException {
+        try (var lines = Files.lines(Path.of(path))) {
+            return lines
+                    .skip(1) // Skip the header
+                    .limit(1000)// comentar apra dejar q fluya
+                    .map(line -> {
+                        String[] values = line.split(";");
+                        LocalDate date = null; // Adjust index as necessary
+                        try {
+                            date = parseDate(values[indexes[0]]);
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
+                        String licensePlateNumber = values[indexes[1]];
+                        String violationCode = values[indexes[2]];
+                        String unitDescription = values[indexes[3]];
+                        String fineAmount = values[indexes[4]];
+                        String communityAreaName = values[indexes[5]];
+
+                        return new Infraction(date, licensePlateNumber, violationCode, unitDescription,
+                                communityAreaName, Double.parseDouble(fineAmount));
+                    })
+                    .collect(Collectors.toList());
         }
     }
 
