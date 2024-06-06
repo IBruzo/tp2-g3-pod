@@ -31,8 +31,8 @@ public class Query3 {
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
-    private static final String DEFAULT_WRITE_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
+    private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
@@ -56,17 +56,17 @@ public class Query3 {
         clientConfig.setNetworkConfig(clientNetworkConfig);
         HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
 
-        IList<Infraction> infractionList = hazelcastInstance.getList("infractions");
+        IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
 
         DocumentUtils documentUtils = new DocumentUtils();
 
-        documentUtils.readCSV(infractionList, codeInfraction, cityProperty, inPath);
+        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
 
 
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
-        KeyValueSource<String, Infraction> source = KeyValueSource.fromList(infractionList);
+        KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
         ICompletableFuture<List<Pair<String,Double>>> future = job

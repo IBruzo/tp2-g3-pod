@@ -1,6 +1,5 @@
 package org.example.client;
 
-import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import lombok.Cleanup;
 import org.example.models.Infraction;
@@ -19,7 +18,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +29,7 @@ public class DocumentUtils {
     private static final String CSV_FILE = "tickets";
     private static final String CSV_CODES = "infractions";
 
-    public void readCSV(IList<Infraction> infractionList, IMap<String, String> codeInfraction, String cityCode,
+    public void readCSV(IMap<String, Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
             String inPath) {
 
         try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_FILE + cityCode + ".csv"))) {
@@ -61,7 +60,8 @@ public class DocumentUtils {
                 }
             }
 
-         infractionList.addAll(  parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
+            infractionMap.putAll(parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
+//         infractionList.addAll(  parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,11 +86,14 @@ public class DocumentUtils {
         }
     }
 
-    public static List<Infraction> parseInfractionsFile(String path, int[] indexes) throws IOException {
+    public static Map<String, Infraction> parseInfractionsFile(String path, int[] indexes) throws IOException {
+        Map<String, Infraction> infractionMap = new HashMap<>();
+        AtomicInteger csvLines = new AtomicInteger(0);
+
         try (var lines = Files.lines(Path.of(path))) {
-            return lines
+            infractionMap = lines
                     .skip(1) // Skip the header
-                    .limit(1000)// comentar apra dejar q fluya
+                    .limit(1000) // comentar para dejar que fluya
                     .map(line -> {
                         String[] values = line.split(";");
                         LocalDate date = null; // Adjust index as necessary
@@ -105,11 +108,15 @@ public class DocumentUtils {
                         String fineAmount = values[indexes[4]];
                         String communityAreaName = values[indexes[5]];
 
-                        return new Infraction(date, licensePlateNumber, violationCode, unitDescription,
+                        Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
                                 communityAreaName, Double.parseDouble(fineAmount));
+
+                        String key = "infraction-" + csvLines.getAndIncrement();
+                        return Map.entry(key, infraction);
                     })
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
+        return infractionMap;
     }
 
     private static LocalDate parseDate(String dateString) throws ParseException {
