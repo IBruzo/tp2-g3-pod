@@ -33,6 +33,9 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.example.client.DocumentUtils.writeTimeToFile;
+
 public class Query4 {
 
     private static final Logger logger = LoggerFactory.getLogger(Query1.class);
@@ -41,6 +44,7 @@ public class Query4 {
     private static final String DEFAULT_CITY = "CHI";
     private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
     private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
+    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/timestamp/";
     private static final String DEFAULT_FROM = "01/01/1970";
     private static final String DEFAULT_TO = "31/12/2023";
 
@@ -54,6 +58,7 @@ public class Query4 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
+        String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
         // Client Config
         ClientConfig clientConfig = new ClientConfig();
@@ -72,19 +77,22 @@ public class Query4 {
 
         DocumentUtils documentUtils = new DocumentUtils();
 
+        writeTimeToFile(4, "Inicio de la lectura del archivo", timePath);
         documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
+        writeTimeToFile(4, "Fin de la lectura del archivo", timePath);
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
         KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
+        writeTimeToFile(4, "Inicio del trabajo map/reduce", timePath);
         ICompletableFuture<List<String>> future = job
                 .mapper(new InfractionsInNeighborhoodMapper(DEFAULT_FROM, DEFAULT_TO))
                 .reducer(new InfractionsInNeighborhoodReducerFactory())
                 .submit(new InfractionsInNeighborhoodCollator());
 
         List<String> result = future.get();
-        //System.out.println(result);
+        writeTimeToFile(4, "Fin del trabajo map/reduce", timePath);
 
         DocumentUtils.writeQuery4CSV(outPath + "query4_results.csv", result);
 

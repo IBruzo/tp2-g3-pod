@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import static org.example.client.DocumentUtils.writeTimeToFile;
+
 public class Query5 {
     private static final Logger logger = LoggerFactory.getLogger(Query5.class);
 
@@ -35,6 +37,7 @@ public class Query5 {
     private static final String DEFAULT_CITY = "CHI";
     private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
     private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
+    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/timestamp/";
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -45,6 +48,7 @@ public class Query5 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
+        String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
         // Client Config
         ClientConfig clientConfig = new ClientConfig();
@@ -63,7 +67,9 @@ public class Query5 {
 
         DocumentUtils documentUtils = new DocumentUtils();
 
+        writeTimeToFile(5, "Inicio de la lectura del archivo", timePath);
         documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
+        writeTimeToFile(5, "Fin de la lectura del archivo", timePath);
 
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
         hazelcastInstance.getList("validKeys").addAll(codeInfraction.keySet());
@@ -72,12 +78,14 @@ public class Query5 {
         KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
+        writeTimeToFile(5, "Inicio del trabajo map/reduce", timePath);
         ICompletableFuture<Map<Integer, List<Pair<String, String>>>> future = job
                 .mapper(new InfractionPairMapper())
                 .reducer(new InfractionPairReducerFactory())
                 .submit(new InfractionPairCollator(codeInfraction));
 
         Map<Integer, List<Pair<String, String>>> result = future.get();
+        writeTimeToFile(5, "Fin del trabajo map/reduce", timePath);
         System.out.println(result);
 
         DocumentUtils.writeQuery5CSV(outPath + "query5_results.csv", result);

@@ -16,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
@@ -210,4 +211,12 @@ public class DocumentUtils {
         }
     }
 
+    public static void writeTimeToFile(int queryNumber, String message, String path) throws IOException {
+        String fileName = path + "time" + queryNumber + ".txt";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss:SSSS");
+        String formattedTime = LocalDateTime.now().format(formatter);
+        try (var writer = Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write( formattedTime + " - " + message + "\n");
+        }
+    }
 }

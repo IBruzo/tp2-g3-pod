@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import static org.example.client.DocumentUtils.writeTimeToFile;
+
 public class Query3 {
     private static final Logger logger = LoggerFactory.getLogger(Query3.class);
 
@@ -33,6 +35,7 @@ public class Query3 {
     private static final String DEFAULT_CITY = "CHI";
     private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
     private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
+    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/timestamp/";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
@@ -43,6 +46,7 @@ public class Query3 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
+        String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
         // Client Config
         ClientConfig clientConfig = new ClientConfig();
@@ -61,20 +65,22 @@ public class Query3 {
 
         DocumentUtils documentUtils = new DocumentUtils();
 
+        writeTimeToFile(3, "Inicio de la lectura del archivo", timePath);
         documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
-
-
+        writeTimeToFile(3, "Fin de la lectura del archivo", timePath);
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
         KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> job = jobTracker.newJob(source);
 
+        writeTimeToFile(3, "Inicio del trabajo map/reduce", timePath);
         ICompletableFuture<List<Pair<String,Double>>> future = job
                 .mapper(new InfractionPercentageMapper())
                 .reducer(new InfractionPercentageReducerFactory())
                 .submit(new InfractionPercentageCollator());
 
         List<Pair<String,Double>> result = future.get();
+        writeTimeToFile(3, "Fin del trabajo map/reduce", timePath);
         if(limit!=0)
             result=result.subList(0,limit);
 
