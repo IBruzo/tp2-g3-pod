@@ -2,11 +2,12 @@ package org.example.query4;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
+import org.example.models.Pair;
 
 @SuppressWarnings("deprecation")
-public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<String, Integer, Integer> {
+public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<Pair<String,String>, Integer, Integer> {
     @Override
-    public Reducer<Integer, Integer> newReducer(String key) {
+    public Reducer<Integer, Integer> newReducer(Pair<String,String> key) {
         return new InfractionsInNeighborhoodReducer();
     }
 
@@ -15,6 +16,7 @@ public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<S
 
         @Override
         public void beginReduce() {
+            System.out.println("Reducer created");
             sum = 0;
         }
 
