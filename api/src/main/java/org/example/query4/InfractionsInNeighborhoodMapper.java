@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @SuppressWarnings("deprecation")
-public class InfractionsInNeighborhoodMapper implements Mapper<String, Infraction, Pair<String,String>, Integer> {
+public class InfractionsInNeighborhoodMapper implements Mapper<String, Infraction, String, Pair<String,Integer>> {
     private final LocalDate from;
     private final LocalDate to;
 
@@ -21,11 +21,10 @@ public class InfractionsInNeighborhoodMapper implements Mapper<String, Infractio
     }
 
     @Override
-    public void map(String key, Infraction infraction, Context<Pair<String,String>, Integer> context) {
+    public void map(String key, Infraction infraction, Context<String, Pair<String,Integer>> context) {
         LocalDate infractionDate = infraction.getInfractionDate();
         if (infractionDate != null && !infractionDate.isBefore(from) && !infractionDate.isAfter(to)) {
-            Pair<String,String> compositeKey = new Pair<>(infraction.getCommunityAreaName(),infraction.getLicensePlateNumber());
-            context.emit(compositeKey, 1);
+            context.emit(infraction.getCommunityAreaName(), new Pair<>(infraction.getLicensePlateNumber(),1));
         }
     }
 }
