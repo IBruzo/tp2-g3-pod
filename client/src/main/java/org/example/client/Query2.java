@@ -46,17 +46,8 @@ public class Query2 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
-        // Client Config
-        ClientConfig clientConfig = new ClientConfig();
-        // Group Config
-        GroupConfig groupConfig = new GroupConfig().setName("g0").setPassword("g0-pass");
-        clientConfig.setGroupConfig(groupConfig);
-        // Client Network Config
-        ClientNetworkConfig clientNetworkConfig = new ClientNetworkConfig();
 
-        clientNetworkConfig.addAddress(addresses);
-        clientConfig.setNetworkConfig(clientNetworkConfig);
-        HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
+        HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
