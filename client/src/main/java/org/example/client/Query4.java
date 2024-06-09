@@ -25,15 +25,15 @@ import static org.example.client.DocumentUtils.writeTimeToFile;
 
 public class Query4 {
 
-    private static final Logger logger = LoggerFactory.getLogger(Query1.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query4.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
-    private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
-    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/timestamp/";
-    private static final String DEFAULT_FROM = "01/01/1970";
-    private static final String DEFAULT_TO = "31/12/2023";
+    private static final String DEFAULT_CITY = "NYC";
+    private static final String DEFAULT_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_FROM = "01/01/2017";
+    private static final String DEFAULT_TO = "31/12/2017";
 
 
     @SuppressWarnings("deprecation")
@@ -47,17 +47,7 @@ public class Query4 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
-        // Client Config
-        ClientConfig clientConfig = new ClientConfig();
-        // Group Config
-        GroupConfig groupConfig = new GroupConfig().setName("g0").setPassword("g0-pass");
-        clientConfig.setGroupConfig(groupConfig);
-        // Client Network Config
-        ClientNetworkConfig clientNetworkConfig = new ClientNetworkConfig();
-
-        clientNetworkConfig.addAddress(addresses);
-        clientConfig.setNetworkConfig(clientNetworkConfig);
-        HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
+        HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");

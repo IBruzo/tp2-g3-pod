@@ -1,6 +1,7 @@
 package org.example.query4;
 
 import com.hazelcast.mapreduce.Collator;
+import org.example.models.Pair;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,15 +9,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
-public class InfractionsInNeighborhoodCollator implements Collator<Map.Entry<String, Integer>, List<String>> {
+public class InfractionsInNeighborhoodCollator implements Collator<Map.Entry<Pair<String, String>, Integer>, List<String>> {
     @Override
-    public List<String> collate(Iterable<Map.Entry<String, Integer>> values) {
+    public List<String> collate(Iterable<Map.Entry<Pair<String, String>, Integer>> values) {
+        System.out.println("Collating");
         Map<String, Map.Entry<String, Integer>> neighborhoodMaxInfractions = new HashMap<>();
 
-        for (Map.Entry<String, Integer> entry : values) {
-            String[] parts = entry.getKey().split(";");
-            String neighborhood = parts[0];
-            String licensePlate = parts[1];
+        for (Map.Entry<Pair<String, String>, Integer> entry : values) {
+            Pair<String, String> pair = entry.getKey();
+            String neighborhood = pair.getFirst();
+            String licensePlate = pair.getSecond();
             Integer count = entry.getValue();
 
             Map.Entry<String, Integer> newEntry = Map.entry(licensePlate, count);

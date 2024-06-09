@@ -12,9 +12,7 @@ import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
 import org.example.models.Infraction;
 import org.example.models.Pair;
-import org.example.query5.InfractionPairCollator;
-import org.example.query5.InfractionPairMapper;
-import org.example.query5.InfractionPairReducerFactory;
+import org.example.query5.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,17 +45,7 @@ public class Query5 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
 
-        // Client Config
-        ClientConfig clientConfig = new ClientConfig();
-        // Group Config
-        GroupConfig groupConfig = new GroupConfig().setName("g0").setPassword("g0-pass");
-        clientConfig.setGroupConfig(groupConfig);
-        // Client Network Config
-        ClientNetworkConfig clientNetworkConfig = new ClientNetworkConfig();
-
-        clientNetworkConfig.addAddress(addresses);
-        clientConfig.setNetworkConfig(clientNetworkConfig);
-        HazelcastInstance hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
+        HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
@@ -71,21 +59,36 @@ public class Query5 {
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
         hazelcastInstance.getList("validKeys").addAll(codeInfraction.keySet());
 
-        JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
-        KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
-        Job<String, Infraction> job = jobTracker.newJob(source);
+        JobTracker infractionFinejobTracker = hazelcastInstance.getJobTracker("default");
+        KeyValueSource<String, Infraction> infractionFineSource = KeyValueSource.fromMap(infractionMap);
+        Job<String, Infraction> infractionFineJob = infractionFinejobTracker.newJob(infractionFineSource);
 
         writeTimeToFile(5, "Inicio del trabajo map/reduce", timePath);
-        ICompletableFuture<Map<Integer, List<Pair<String, String>>>> future = job
+        ICompletableFuture<Map<String, Double>> infractionFineFuture = infractionFineJob
                 .mapper(new InfractionPairMapper())
                 .reducer(new InfractionPairReducerFactory())
                 .submit(new InfractionPairCollator(codeInfraction));
 
-        Map<Integer, List<Pair<String, String>>> result = future.get();
-        writeTimeToFile(5, "Fin del trabajo map/reduce", timePath);
-        System.out.println(result);
+        Map<String, Double> infractionFineResult = infractionFineFuture.get();
 
-        DocumentUtils.writeQuery5CSV(outPath + "query5_results.csv", result);
+        // Prepare second map/reduce
+        IMap<String, Double> infractionFineIMap = hazelcastInstance.getMap("infractionFineResult");
+        infractionFineIMap.putAll(infractionFineResult);
+
+        JobTracker bracketInfractionJobTracker = hazelcastInstance.getJobTracker("default");
+        KeyValueSource<String, Double> bracketInfractionSource = KeyValueSource.fromMap(infractionFineIMap);
+        Job<String, Double> bracketInfractionJob = bracketInfractionJobTracker.newJob(bracketInfractionSource);
+
+        // Second map/reduce
+        ICompletableFuture<Map<Integer, List<Pair<String, String>>>> bracketInfractionFuture = bracketInfractionJob
+                .mapper(new BracketInfractionMapper())
+                .submit(new BracketInfractionCollator());
+
+        Map<Integer, List<Pair<String, String>>> bracketInfractionResult = bracketInfractionFuture.get();
+
+        writeTimeToFile(5, "Fin del trabajo map/reduce", timePath);
+
+        DocumentUtils.writeQuery5CSV(outPath + "query5_results.csv", bracketInfractionResult);
 
         // Shutdown
         HazelcastClient.shutdownAll();
