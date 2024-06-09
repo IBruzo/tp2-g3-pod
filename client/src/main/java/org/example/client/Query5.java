@@ -44,6 +44,8 @@ public class Query5 {
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
+        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
+        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
 
         HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
@@ -53,7 +55,7 @@ public class Query5 {
         DocumentUtils documentUtils = new DocumentUtils();
 
         writeTimeToFile(5, "Inicio de la lectura del archivo", timePath);
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
+        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath,batchSize,limit);
         writeTimeToFile(5, "Fin de la lectura del archivo", timePath);
 
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());

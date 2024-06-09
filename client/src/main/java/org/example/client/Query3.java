@@ -1,9 +1,6 @@
 package org.example.client;
 
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.core.IMap;
@@ -38,11 +35,14 @@ public class Query3 {
 
         String addressProperty = System.getProperty("addresses", DEFAULT_ADDRESS);
         String[] addresses = addressProperty.split(";");
-        int limit = Integer.parseInt( System.getProperty("n","0"));
+        int topn = Integer.parseInt( System.getProperty("n","0"));
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
+        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
+        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
+
 
         HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
@@ -52,7 +52,7 @@ public class Query3 {
         DocumentUtils documentUtils = new DocumentUtils();
 
         writeTimeToFile(3, "Inicio de la lectura del archivo", timePath);
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath);
+        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath,batchSize,limit);
         writeTimeToFile(3, "Fin de la lectura del archivo", timePath);
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
@@ -67,8 +67,8 @@ public class Query3 {
 
         List<Pair<String,Double>> result = future.get();
         writeTimeToFile(3, "Fin del trabajo map/reduce", timePath);
-        if(limit!=0)
-            result=result.subList(0,limit);
+        if(topn !=0)
+            result=result.subList(0, topn);
 
         DocumentUtils.writeQuery3CSV(outPath + "query3_results.csv", result);
 

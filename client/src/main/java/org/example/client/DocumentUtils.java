@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DocumentUtils {
 
@@ -31,7 +32,7 @@ public class DocumentUtils {
     private static final String CSV_CODES = "infractions";
 
     public void readCSV(IMap<String, Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
-            String inPath) {
+            String inPath, int batchSize, int limit) {
 
         try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_FILE + cityCode + ".csv"))) {
             String line = br.readLine();
@@ -61,7 +62,7 @@ public class DocumentUtils {
                 }
             }
 
-            infractionMap.putAll(parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
+            parseInfractionsFile(infractionMap,inPath + CSV_FILE + cityCode + ".csv",indexes,batchSize,limit);
 //         infractionList.addAll(  parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
 
         } catch (IOException e) {
@@ -87,37 +88,49 @@ public class DocumentUtils {
         }
     }
 
-    public static Map<String, Infraction> parseInfractionsFile(String path, int[] indexes) throws IOException {
-        Map<String, Infraction> infractionMap = new HashMap<>();
+    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes, int batchSize, int limit) throws IOException {
+
         AtomicInteger csvLines = new AtomicInteger(0);
 
-        try (var lines = Files.lines(Path.of(path))) {
-            infractionMap = lines
-                    .skip(1) // Skip the header
-                    .limit(1000) // comentar para dejar que fluya
-                    .map(line -> {
-                        String[] values = line.split(";");
-                        LocalDate date = null; // Adjust index as necessary
-                        try {
-                            date = parseDate(values[indexes[0]]);
-                        } catch (ParseException e) {
-                            throw new RuntimeException(e);
-                        }
-                        String licensePlateNumber = values[indexes[1]];
-                        String violationCode = values[indexes[2]];
-                        String unitDescription = values[indexes[3]];
-                        String fineAmount = values[indexes[4]];
-                        String communityAreaName = values[indexes[5]];
+        try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
 
-                        Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
-                                communityAreaName, Double.parseDouble(fineAmount));
+            br.readLine();
 
-                        String key = "infraction-" + csvLines.getAndIncrement();
-                        return Map.entry(key, infraction);
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            String line = null;
+            while ((line = br.readLine()) != null && ( limit<=0 || csvLines.get() < limit)) {
+                Map<String, Infraction> batchMap = new HashMap<>();
+                int count = 0;
+
+                while (count < batchSize && (line = br.readLine()) != null) {
+                    String[] values = line.split(";");
+                    LocalDate date = null;
+                    try {
+                        date = parseDate(values[indexes[0]]);
+                    } catch (Exception e) {
+                        // Handle parse exception
+                        e.printStackTrace();
+                        continue;
+                    }
+                    String licensePlateNumber = values[indexes[1]];
+                    String violationCode = values[indexes[2]];
+                    String unitDescription = values[indexes[3]];
+                    String fineAmount = values[indexes[4]];
+                    String communityAreaName = values[indexes[5]];
+
+                    Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
+                            communityAreaName, Double.parseDouble(fineAmount));
+
+                    String key = "infraction-" + csvLines.getAndIncrement();
+                    batchMap.put(key, infraction);
+                    count++;
+                }
+
+                // Process the batch map before moving to the next batch
+                infractionMap.putAll(batchMap);
+
+            }
         }
-        return infractionMap;
+        System.out.println(csvLines.get());
     }
 
     private static LocalDate parseDate(String dateString) throws ParseException {
