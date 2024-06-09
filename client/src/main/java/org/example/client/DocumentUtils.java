@@ -2,6 +2,7 @@ package org.example.client;
 
 import com.hazelcast.core.IMap;
 import lombok.Cleanup;
+import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.models.Pair;
 
@@ -226,10 +227,34 @@ public class DocumentUtils {
 
     public static void writeTimeToFile(int queryNumber, String message, String path) throws IOException {
         String fileName = path + "time" + queryNumber + ".txt";
+        @Cleanup
+        BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(fileName),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss:SSSS");
         String formattedTime = LocalDateTime.now().format(formatter);
-        try (var writer = Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-            writer.write( formattedTime + " - " + message + "\n");
+        writer.write( formattedTime + " - " + message + "\n");
+    }
+
+    public static void clearTimestampFile(int queryNumber, String path) throws IOException {
+        String fileName = path + "time" + queryNumber + ".txt";
+        Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).close();
+    }
+
+    public static LogEntry createLogEntry(String message) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss:SSSS");
+        String formattedTime = LocalDateTime.now().format(formatter);
+        return new LogEntry(formattedTime, message);
+    }
+
+    public static void writeLogEntriesToFile(int queryNumber, List<LogEntry> logEntries, String path) throws IOException {
+        String fileName = path + "time" + queryNumber + ".txt";
+        try (BufferedWriter writer = Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+            for (LogEntry logEntry : logEntries) {
+                writer.write(logEntry.toString() + "\n");
+            }
         }
     }
+
 }

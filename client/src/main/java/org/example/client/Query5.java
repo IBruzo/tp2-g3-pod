@@ -1,15 +1,13 @@
 package org.example.client;
 
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
+import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.models.Pair;
 import org.example.query5.*;
@@ -17,13 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static org.example.client.DocumentUtils.writeTimeToFile;
+import static org.example.client.DocumentUtils.*;
 
 public class Query5 {
     private static final Logger logger = LoggerFactory.getLogger(Query5.class);
@@ -32,20 +27,19 @@ public class Query5 {
     private static final String DEFAULT_CITY = "CHI";
     private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
     private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
-    private static final String DEFAULT_TIMESTAMP_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/timestamp/";
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
+        List<LogEntry> logEntries = new ArrayList<>();
 
         String addressProperty = System.getProperty("addresses", DEFAULT_ADDRESS);
         String[] addresses = addressProperty.split(";");
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
-        String timePath = System.getProperty("timePath", DEFAULT_TIMESTAMP_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
-        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
+        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
 
         HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
 
@@ -54,9 +48,9 @@ public class Query5 {
 
         DocumentUtils documentUtils = new DocumentUtils();
 
-        writeTimeToFile(5, "Inicio de la lectura del archivo", timePath);
+        logEntries.add(createLogEntry("Inicio de la lectura del archivo"));
         documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath,batchSize,limit);
-        writeTimeToFile(5, "Fin de la lectura del archivo", timePath);
+        logEntries.add(createLogEntry("Fin de la lectura del archivo"));
 
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
         hazelcastInstance.getList("validKeys").addAll(codeInfraction.keySet());
@@ -65,13 +59,14 @@ public class Query5 {
         KeyValueSource<String, Infraction> infractionFineSource = KeyValueSource.fromMap(infractionMap);
         Job<String, Infraction> infractionFineJob = infractionFinejobTracker.newJob(infractionFineSource);
 
-        writeTimeToFile(5, "Inicio del trabajo map/reduce", timePath);
+        logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<Map<String, Double>> infractionFineFuture = infractionFineJob
                 .mapper(new InfractionPairMapper())
                 .reducer(new InfractionPairReducerFactory())
                 .submit(new InfractionPairCollator(codeInfraction));
 
         Map<String, Double> infractionFineResult = infractionFineFuture.get();
+        logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         // Prepare second map/reduce
         IMap<String, Double> infractionFineIMap = hazelcastInstance.getMap("infractionFineResult");
@@ -82,15 +77,16 @@ public class Query5 {
         Job<String, Double> bracketInfractionJob = bracketInfractionJobTracker.newJob(bracketInfractionSource);
 
         // Second map/reduce
+        logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<Map<Integer, List<Pair<String, String>>>> bracketInfractionFuture = bracketInfractionJob
                 .mapper(new BracketInfractionMapper())
                 .submit(new BracketInfractionCollator());
 
         Map<Integer, List<Pair<String, String>>> bracketInfractionResult = bracketInfractionFuture.get();
-
-        writeTimeToFile(5, "Fin del trabajo map/reduce", timePath);
+        logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         DocumentUtils.writeQuery5CSV(outPath + "query5_results.csv", bracketInfractionResult);
+        writeLogEntriesToFile(5, logEntries, outPath);
 
         // Shutdown
         HazelcastClient.shutdownAll();
