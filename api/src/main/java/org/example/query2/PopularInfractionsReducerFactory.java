@@ -4,41 +4,37 @@ import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
 import org.example.models.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 
-public class PopularInfractionsReducerFactory implements ReducerFactory<String, Pair<String, Integer>, List<Pair<String, Integer>>> {
+public class PopularInfractionsReducerFactory implements ReducerFactory<String, Pair<String, Integer>, Map<String, Integer>> {
 
     @Override
-    public Reducer<Pair<String, Integer>, List<Pair<String, Integer>>> newReducer(String key) {
+    public Reducer<Pair<String, Integer>, Map<String, Integer>> newReducer(String key) {
         return new PopularInfractionsReducer();
     }
 
 
-    private class PopularInfractionsReducer extends Reducer<Pair<String, Integer>, List<Pair<String, Integer>>> {
-        private List<Pair<String, Integer>> result = new ArrayList<Pair<String, Integer>>();
+    private class PopularInfractionsReducer extends Reducer<Pair<String, Integer>, Map<String, Integer>> {
+        private Map<String, Integer> result = new  HashMap<>();
         @Override
         public void beginReduce() {
-            result = new ArrayList<Pair<String, Integer>>();
+            result = new HashMap<>();
         }
 
         @Override
         public void reduce(Pair<String, Integer> val) {
-            System.out.println(val);
-          for(Pair<String, Integer> pair : result){
-              if(pair.getFirst().equals(val.getFirst())){
-                  pair.setSecond(pair.getSecond()+1);
-                  return;
-              }
-          }
-          result.add(val);
+           if (result.containsKey(val.getFirst())) {
+               result.put(val.getFirst(), result.get(val.getFirst()) + val.getSecond());
+           }else{
+               result.put(val.getFirst(), val.getSecond());
+           }
 
         }
 
         @Override
-        public List<Pair<String, Integer>> finalizeReduce() {
-            result.sort((e1, e2) -> e2.getSecond().compareTo(e1.getSecond()));
+        public Map<String, Integer> finalizeReduce() {
             return result;
         }
     }

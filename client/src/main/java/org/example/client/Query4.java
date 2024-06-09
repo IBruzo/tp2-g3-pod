@@ -6,33 +6,20 @@ import com.hazelcast.client.config.ClientNetworkConfig;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
-import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
-
 import org.example.models.Infraction;
-import org.example.query1.TicketsPerInfractionCollator;
-import org.example.query1.TicketsPerInfractionMapper;
-import org.example.query1.TicketsPerInfractionReducerFactory;
 import org.example.query4.InfractionsInNeighborhoodCollator;
 import org.example.query4.InfractionsInNeighborhoodMapper;
 import org.example.query4.InfractionsInNeighborhoodReducerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.example.client.DocumentUtils.writeTimeToFile;
 
