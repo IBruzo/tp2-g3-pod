@@ -92,6 +92,7 @@ public class DocumentUtils {
     public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes, int batchSize, int limit) throws IOException {
 
         AtomicInteger csvLines = new AtomicInteger(0);
+        int limitCounter =limit;
 
         try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
 
@@ -102,7 +103,7 @@ public class DocumentUtils {
                 Map<String, Infraction> batchMap = new HashMap<>();
                 int count = 0;
 
-                while (count < batchSize && (line = br.readLine()) != null) {
+                while (count < batchSize && (line = br.readLine()) != null && limitCounter>count) {
                     String[] values = line.split(";");
                     LocalDate date = null;
                     try {
@@ -124,6 +125,7 @@ public class DocumentUtils {
                     String key = "infraction-" + csvLines.getAndIncrement();
                     batchMap.put(key, infraction);
                     count++;
+                    limitCounter--;
                 }
 
                 // Process the batch map before moving to the next batch
@@ -131,7 +133,6 @@ public class DocumentUtils {
 
             }
         }
-        System.out.println(csvLines.get());
     }
 
     private static LocalDate parseDate(String dateString) throws ParseException {
