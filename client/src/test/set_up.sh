@@ -14,4 +14,4 @@ tar xvzf tp2-g3-pod-server-1.0-SNAPSHOT-bin.tar.gz
 
 # Run server
 cd tp2-g3-pod-server-1.0-SNAPSHOT
-sh run-server.sh
+sh run-server.sh -Xmx6g

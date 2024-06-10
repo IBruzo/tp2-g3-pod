@@ -63,8 +63,9 @@ public class DocumentUtils {
                 }
             }
 
-            parseInfractionsFile(infractionMap,inPath + CSV_FILE + cityCode + ".csv",indexes,batchSize,limit);
-//         infractionList.addAll(  parseInfractionsFile(inPath + CSV_FILE + cityCode + ".csv",indexes));
+            parseInfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", indexes, batchSize, limit);
+            // infractionList.addAll( parseInfractionsFile(inPath + CSV_FILE + cityCode +
+            // ".csv",indexes));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -89,21 +90,22 @@ public class DocumentUtils {
         }
     }
 
-    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes, int batchSize, int limit) throws IOException {
+    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes,
+            int batchSize, int limit) throws IOException {
 
         AtomicInteger csvLines = new AtomicInteger(0);
-        int limitCounter =limit;
+        int limitCounter = limit;
 
         try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
 
             br.readLine();
 
             String line = null;
-            while ((line = br.readLine()) != null && ( limit<=0 || csvLines.get() < limit)) {
+            while ((line = br.readLine()) != null && (limit <= 0 || csvLines.get() < limit)) {
                 Map<String, Infraction> batchMap = new HashMap<>();
                 int count = 0;
 
-                while (count < batchSize && (line = br.readLine()) != null && limitCounter>count) {
+                while (count < batchSize && (line = br.readLine()) != null && limitCounter > count) {
                     String[] values = line.split(";");
                     LocalDate date = null;
                     try {
@@ -173,7 +175,7 @@ public class DocumentUtils {
             StringBuilder line = new StringBuilder();
             line.append(entry.getKey()).append(";");
             for (String infraction : entry.getValue()) {
-               line.append(infraction).append(";");
+                line.append(infraction).append(";");
             }
             line.deleteCharAt(line.length() - 1);
             line.append("\n");
@@ -196,7 +198,7 @@ public class DocumentUtils {
         }
     }
 
-    public static void writeQuery3CSV(String path, List<Pair<String,Double>> data) throws IOException {
+    public static void writeQuery3CSV(String path, List<Pair<String, Double>> data) throws IOException {
         @Cleanup
         BufferedWriter writer = Files.newBufferedWriter(
                 Path.of(path),
@@ -209,7 +211,7 @@ public class DocumentUtils {
         writer.write("Issuing Agency;Percentage\n");
 
         for (Pair<String, Double> entry : data) {
-            writer.write(entry.getFirst() + ";" + df.format( entry.getSecond()) + "%" + "\n");
+            writer.write(entry.getFirst() + ";" + df.format(entry.getSecond()) + "%" + "\n");
         }
     }
 
@@ -235,12 +237,13 @@ public class DocumentUtils {
                 StandardOpenOption.APPEND);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss:SSSS");
         String formattedTime = LocalDateTime.now().format(formatter);
-        writer.write( formattedTime + " - " + message + "\n");
+        writer.write(formattedTime + " - " + message + "\n");
     }
 
     public static void clearTimestampFile(int queryNumber, String path) throws IOException {
         String fileName = path + "time" + queryNumber + ".txt";
-        Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).close();
+        Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+                .close();
     }
 
     public static LogEntry createLogEntry(String message) {
@@ -249,9 +252,12 @@ public class DocumentUtils {
         return new LogEntry(formattedTime, message);
     }
 
-    public static void writeLogEntriesToFile(int queryNumber, List<LogEntry> logEntries, String path) throws IOException {
-        String fileName = path + "time" + queryNumber + ".txt";
-        try (BufferedWriter writer = Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+    public static void writeLogEntriesToFile(int queryNumber, List<LogEntry> logEntries, String path,
+            String outputFileName) throws IOException {
+
+        String fileName = path + outputFileName + ".txt";
+        try (BufferedWriter writer = Files.newBufferedWriter(Path.of(fileName), StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE)) {
             for (LogEntry logEntry : logEntries) {
                 writer.write(logEntry.toString() + "\n");
             }

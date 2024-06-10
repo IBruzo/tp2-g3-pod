@@ -44,9 +44,9 @@ public class Query2 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
+        String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
 
-
-        HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
+        HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
@@ -54,7 +54,7 @@ public class Query2 {
         DocumentUtils documentUtils = new DocumentUtils();
 
         logEntries.add(createLogEntry("Inicio de la lectura del archivo"));
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath,batchSize,limit);
+        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
         logEntries.add(createLogEntry("Fin de la lectura del archivo"));
 
         hazelcastInstance.getList("validKeys").addAll(codeInfraction.keySet());
@@ -73,7 +73,7 @@ public class Query2 {
         logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         DocumentUtils.writeQuery2CSV(outPath + "query2_results.csv", result);
-        writeLogEntriesToFile(2, logEntries, outPath);
+        writeLogEntriesToFile(2, logEntries, outPath, timeOutputFileName);
 
         // Shutdown
         HazelcastClient.shutdownAll();

@@ -36,7 +36,6 @@ public class Query4 {
     private static final String DEFAULT_FROM = "01/01/2017";
     private static final String DEFAULT_TO = "31/12/2017";
 
-
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         logger.info("hz-config Client Starting ...");
@@ -49,8 +48,9 @@ public class Query4 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
+        String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
 
-        HazelcastInstance hazelcastInstance =  HazelConfig.connect(addresses);
+        HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
         IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
@@ -58,7 +58,7 @@ public class Query4 {
         DocumentUtils documentUtils = new DocumentUtils();
 
         logEntries.add(createLogEntry("Inicio de la lectura del archivo"));
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath,batchSize,limit);
+        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
         logEntries.add(createLogEntry("Fin de la lectura del archivo"));
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
@@ -75,7 +75,7 @@ public class Query4 {
         logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         DocumentUtils.writeQuery4CSV(outPath + "query4_results.csv", result);
-        writeLogEntriesToFile(4, logEntries, outPath);
+        writeLogEntriesToFile(4, logEntries, outPath, timeOutputFileName);
 
         // Shutdown
         HazelcastClient.shutdownAll();

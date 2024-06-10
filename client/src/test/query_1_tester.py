@@ -3,21 +3,26 @@ import os
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
 
 # Issue with identical values, when
 
-def run_query(query_number, city, limit, batch_size, in_path, out_path, gigas_ram):
+def run_query(query_number, city, limit, batch_size, in_path, out_path, gigas_ram, output_file_name):
     working_directory = "client/target/tp2-g3-pod-client-1.0-SNAPSHOT"
     command = (
         f"sh run-query{query_number}.sh"
-        # f"-Xmx{gigas_ram}g"
+        f" -Xmx{gigas_ram}g"
         f" -Dcity={city}"
         f" -Dlimit={limit}"
         f" -DbatchSize={batch_size}"
         f" -DinPath={in_path}"
         f" -DoutPath={out_path}"
+        f" -DoutputFileName={output_file_name}"
     )
-    run_command(command, working_directory)
+    print(run_command(command, working_directory))
     return read_output_file(out_path, query_number)
 
 def read_output_file(out_path, query_number):
@@ -48,6 +53,28 @@ def print_command_execution(command, working_directory):
           """)
 
 ####################
+
+def send_email_notification(subject, body, to_email):
+    from_email = "joaquingirodnotifier@gmail.com"
+    from_password = "vtre ncgw lddl drkd "
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(from_email, from_password)
+        text = msg.as_string()
+        server.sendmail(from_email, to_email, text)
+        server.quit()
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 def parse_timestamps(log_content):
     timestamps = {}
@@ -103,36 +130,77 @@ def plot_results(df, parameter, city, output_dir):
     filepath = os.path.join(output_dir, filename)
     plt.savefig(filepath)
 
+def plot_batch_size_evolution(df, city, output_dir):
+    plt.figure(figsize=(8, 6))
+    for batch_size in df['batch_size'].unique():
+        batch_df = df[df['batch_size'] == batch_size]
+        if not batch_df.empty:
+            plt.plot(batch_df['lines'].values, batch_df['read_time'].values, marker='o', label=f'Batch Size: {batch_size}')
+            for x, y in zip(batch_df['lines'].values, batch_df['read_time'].values):
+                plt.text(x, y, f'({x}, {y:.2f})', fontsize=8, ha='right')
+    plt.title(f'Evolution of Batch Size - {city}')
+    plt.xlabel('Inputted Lines')
+    plt.ylabel('Read Time (s)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'{city}_batch_size_evolution.png'))
+
+def plot_lines_evolution(df, city, output_dir):
+    plt.figure(figsize=(8, 6))
+    for lines in df['lines'].unique():
+        lines_df = df[df['lines'] == lines]
+        if not lines_df.empty:
+            plt.plot(lines_df['batch_size'].values, lines_df['read_time'].values, marker='o', label=f'Inputted Lines: {lines}')
+            for x, y in zip(lines_df['batch_size'].values, lines_df['read_time'].values):
+                plt.text(x, y, f'({x}, {y:.2f})', fontsize=8, ha='right')
+    plt.title(f'Evolution of Inputted Lines - {city}')
+    plt.xlabel('Batch Size')
+    plt.ylabel('Read Time (s)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'{city}_lines_evolution.png'))
 
 def main():
     query_number = "1"
     in_path = "/home/joaquin/Desktop/pod_data_sets/"
     out_path = "/home/joaquin/Desktop/pod_data_outputs/"
     output_dir = "/home/joaquin/Desktop/pod_data_plots/"
-    gigas_ram = "1"
-    cities = ["NY", "CHI"]
-    # Quick Test
-    line_counts = [100000]
-    batch_sizes = [25000]
-    # Not So Quick Test
-    # line_counts = [100000, 200000, 400000, 800000, 1600000, 3200000]
-    # batch_sizes = [25000, 50000, 100000]
-    # Full Test
-    # line_counts = [100000, 200000, 400000, 800000, 1600000, 3200000] # Change these
-    # batch_sizes = [1000, 10000, 25000, 50000, 100000]       # Change these
+    gigas_ram = "6"
+    # cities_config = {
+    #     "NYC": {
+    #         "line_counts": [400000],
+    #         "batch_sizes": [50000]
+    #     },
+    #     "CHI": {
+    #         "line_counts": [400000],
+    #         "batch_sizes": [50000]
+    #     }
+    # }
+    cities_config = {
+        "NYC": {
+            "line_counts": [800000, 1600000, 3200000, 6400000, 12800000],
+            "batch_sizes": [50000, 100000, 200000, 400000, 800000]
+        },
+        "CHI": {
+            "line_counts": [400000, 800000, 1600000, 3200000, 4800000],
+            "batch_sizes": [50000, 100000, 200000, 400000]
+        }
+    }
 
     data = []
 
-    total_iterations = len(cities) * len(line_counts) * len(batch_sizes)
+    total_iterations = sum(len(config["line_counts"]) * len(config["batch_sizes"]) for config in cities_config.values())
     current_iteration = 0
 
     # For each city, for each of the line counts specified, and for each of the batch size specified, the query is run
-    for city in cities:
-        for lines in line_counts:
-            for batch_size in batch_sizes:
+    for city, config in cities_config.items():
+        for lines in config["line_counts"]:
+            for batch_size in config["batch_sizes"]:
                 current_iteration += 1
                 print(f"Executing {current_iteration}/{total_iterations}...")
-                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram)
+                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}")
                 # Timestamp holds a dictionary with the right value association
                 # {'start_read': '09/06/2024 17:41:19:7100',
                 # 'end_read': '09/06/2024 17:41:31:0670',
@@ -140,29 +208,54 @@ def main():
                 # 'end_mapreduce': '09/06/2024 17:41:40:7831'}
                 timestamps = parse_timestamps(log_content)
                 # Add the rest of the necessary information to the tuple
-                #[{'start_read': '09/06/2024 17:41:19:7100',
-                # 'end_read': '09/06/2024 17:41:31:0670',
-                # 'start_mapreduce': '09/06/2024 17:41:31:0754',
-                # 'end_mapreduce': '09/06/2024 17:41:40:7831',
-                # 'city': 'NY',
+                # DATA [{
+                # 'start_read': '09/06/2024 19:51:06:0541',
+                # 'end_read': '09/06/2024 19:51:06:7562',
+                # 'start_mapreduce': '09/06/2024 19:51:06:7698',
+                # 'end_mapreduce': '09/06/2024 19:51:07:1164',
+                # 'city': 'NYC', 'lines': 100000, 'batch_size': 25000
+                # }, {
+                # 'start_read': '09/06/2024 19:51:07:5772',
+                # 'end_read': '09/06/2024 19:51:08:3132',
+                # 'start_mapreduce': '09/06/2024 19:51:08:3245',
+                # 'end_mapreduce': '09/06/2024 19:51:08:7254',
+                # 'city': 'CHI',
                 # 'lines': 100000,
-                # 'batch_size': 25000},
-                # {'start_read': '09/06/2024 17:41:19:7100',
-                # 'end_read': '09/06/2024 17:41:31:0670',
-                # 'start_mapreduce': '09/06/2024 17:41:31:0754', 'end_mapreduce': '09/06/2024 17:41:40:7831', 'city': 'CHI', 'lines': 100000, 'batch_size': 25000}]
+                # 'batch_size': 25000
+                # }]
                 if timestamps:
                     timestamps['city'] = city
                     timestamps['lines'] = lines
                     timestamps['batch_size'] = batch_size
                     data.append(timestamps)
-                print(timestamps)
 
-    df = analyze_data(data)
+    # Parse the string values for time into the time difference
+    parsed_data = analyze_data(data)
 
-    for city in cities:
-        city_df = df[df['city'] == city]
-        plot_results(city_df, 'lines', city, output_dir)
-        plot_results(city_df, 'batch_size', city, output_dir)
+    # print(parsed_data) for debuggin purposes
+
+    for city in cities_config.keys():
+        # Grab the values values corresponding to each city from the data outputs
+        city_df = parsed_data[parsed_data['city'] == city]
+
+        # Plot the evolution of each batch size when varying the inputted lines
+        # If there are 5 batch sizes in the array then there should be 5 evolutions, which represent the joining of the points that
+        # result of runnning for (BatchSize1, InputtedLines1), (BatchSize1, InputtedLines2), (BatchSize1, InputtedLines3)...
+        plot_batch_size_evolution(city_df, city, output_dir)
+
+        # Plot the evolution of each quantity of inputted lines when varying the batch size
+        # If there are 5 elements in the inputted lines array then there should be 5 evolutions, which represent the joining of the points that
+        # result of runnning for (BatchSize1, InputtedLines1), (BatchSize2, InputtedLines1), (BatchSize3, InputtedLines1)...
+        plot_lines_evolution(city_df, city, output_dir)
+
+    send_email_notification(
+    subject="Script Execution Complete",
+    body="The script has finished running.",
+    to_email="joaquingirod@gmail.com"
+    )
+
+
+
 
 if __name__ == "__main__":
     main()
