@@ -1,14 +1,38 @@
 # Reporting
 
-### Set Up
-For decompressing the bash files in the client and server run from the root of the project the following command
+### TO DO
+
+    Run tests
+    Run tests for 2 Nodes with the laptop
+    Maybe give more ram to the server?
+
+
+### Install Python Dependencies
 ```bash
-sh client/src/test/set_up.sh
+pip install -r client/src/test/requirements.txt
 ```
 
-### Execution
-In order to test the execution of the query and producing the graphs, execute the following command
-Warning: the script has values set for usage of ram, query being tested and output locations which should all be changed into variable arguments instead of hardcoded variables
+### Tweak Plotting Values
+In ```client/src/test/query_lib/config.py``` you can change the configuration, this is the current state
+```python
+cities_config = {
+    "NYC": {
+        "line_counts": [800000, 1600000, 3200000, 4800000, 6400000, 8000000],
+        "batch_sizes": [50000, 100000, 200000, 400000, 800000]
+    },
+    "CHI": {
+        "line_counts": [400000, 800000, 1600000, 3200000, 4800000],
+        "batch_sizes": [50000, 100000, 200000, 400000]
+    }
+}
+```
+
+### Execute Commander
+In order to test the execution of the query and producing the graphs, execute from project root the following command with the values you desire
 ```bash
-python3 client/src/test/query_1_tester.py
+bash client/src/test/commander.sh CLIENT_RAM SERVER_RAM PLOT_OUTPUT_PATH IN_PATH OUTPUT_PATH
+```
+For example:
+```bash
+bash client/src/test/commander.sh 6 6 /home/joaquin/Desktop/pod_data_plots/ /home/joaquin/Desktop/pod_data_sets/ /home/joaquin/Desktop/pod_data_outputs/
 ```
