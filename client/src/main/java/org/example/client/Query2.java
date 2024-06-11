@@ -1,9 +1,6 @@
 package org.example.client;
 
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.ClientNetworkConfig;
-import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ICompletableFuture;
 import com.hazelcast.core.IMap;
@@ -42,9 +39,9 @@ public class Query2 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
-        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
+        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(100000)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
-        String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
+        String timeOutputFileName = System.getProperty("timeOutputFileName", "time2");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
@@ -64,12 +61,12 @@ public class Query2 {
         Job<String, Infraction> job = jobTracker.newJob(source);
 
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
-        ICompletableFuture<Map<String, List<String>>> future = job
+        ICompletableFuture<List< String>> future = job
                 .mapper(new PopularInfractionsMapper())
                 .reducer(new PopularInfractionsReducerFactory())
                 .submit(new PopularInfractionsCollator(codeInfraction));
 
-        Map<String, List<String>> result = future.get();
+        List< String> result = future.get();
         logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         DocumentUtils.writeQuery2CSV(outPath + "query2_results.csv", result);

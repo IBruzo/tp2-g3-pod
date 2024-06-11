@@ -4,47 +4,38 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.mapreduce.Collator;
 
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-public class PopularInfractionsCollator implements Collator<Map.Entry<String, Map<String, Integer>>, Map<String, List<String>>> {
-    IMap<String, String> codeInfraction;
+public class PopularInfractionsCollator implements Collator<Map.Entry<String, Map<String, Integer>>, List<String>> {
+    private final IMap<String, String> codeInfraction;
 
     public PopularInfractionsCollator(IMap<String, String> codeInfraction) {
         this.codeInfraction = codeInfraction;
     }
 
     @Override
-    public Map<String, List<String>> collate(Iterable<Map.Entry<String, Map<String, Integer>>> reducedResults) {
-        Map<String, List<String>> topInfractionsPerCounty = new TreeMap<>();
+    public List<String> collate(Iterable<Map.Entry<String, Map<String, Integer>>> values) {
+        return StreamSupport.stream(values.spliterator(), false)
+                .map(entry -> {
+                    String county = entry.getKey();
+                    Map<String, Integer> typesMap = entry.getValue();
 
-        for (Map.Entry<String, Map<String, Integer>> entry : reducedResults) {
-            String county = entry.getKey();
-            Map<String, Integer> infractionCounts = entry.getValue();
+                    List<String> top3Types = typesMap.entrySet().stream()
+                            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                            .limit(3)
+                            .map(e -> codeInfraction.getOrDefault(e.getKey(), "-"))
+                            .collect(Collectors.toList());
 
-            PriorityQueue<Map.Entry<String, Integer>> topInfractions = new PriorityQueue<>(
-                    Comparator.comparingInt(Map.Entry::getValue)
-            );
+                    while (top3Types.size() < 3) {
+                        top3Types.add("-");
+                    }
 
-            for (Map.Entry<String, Integer> infractionEntry : infractionCounts.entrySet()) {
-                topInfractions.offer(infractionEntry);
-                if (topInfractions.size() > 3) {
-                    topInfractions.poll();
-                }
-            }
-
-            List<String> top3Infractions = new ArrayList<>();
-            while (!topInfractions.isEmpty()) {
-                top3Infractions.add(codeInfraction.get(topInfractions.poll().getKey()));
-            }
-
-            Collections.reverse(top3Infractions);
-
-            while (top3Infractions.size() < 3) {
-                top3Infractions.add("-");
-            }
-
-            topInfractionsPerCounty.put(county, top3Infractions);
-        }
-
-        return topInfractionsPerCounty;
+                    return String.format("%s;%s;%s;%s", county, top3Types.get(0), top3Types.get(1), top3Types.get(2));
+                })
+                .filter(result -> result != null)
+                .sorted()
+                .collect(Collectors.toList());
     }
 }
