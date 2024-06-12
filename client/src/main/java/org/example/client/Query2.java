@@ -61,12 +61,12 @@ public class Query2 {
         Job<String, Infraction> job = jobTracker.newJob(source);
 
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
-        ICompletableFuture<List< String>> future = job
+        ICompletableFuture<Map<String, List<String>>> future = job
                 .mapper(new PopularInfractionsMapper())
                 .reducer(new PopularInfractionsReducerFactory())
                 .submit(new PopularInfractionsCollator(codeInfraction));
 
-        List< String> result = future.get();
+        Map<String, List<String>> result = future.get();
         logEntries.add(createLogEntry("Fin del trabajo map/reduce"));
 
         DocumentUtils.writeQuery2CSV(outPath + "query2_results.csv", result);

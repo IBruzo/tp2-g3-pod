@@ -1,25 +1,47 @@
 package org.example.models;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+import com.hazelcast.nio.serialization.DataSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
+import java.io.IOException;
 import java.time.LocalDate;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class Infraction implements Serializable {
-
-    // issue_date;license_plate_number;violation_code;unit_description;fine_level1_amount;community_area_name
-    // 2005-03-10
-    // 16:30:00;25515fcf196d56759b5ebdf9242553b7123f5233184cfb38c2a3f45cc33fe5c8;0964080A;CPD;50;LOOP
+public class Infraction implements DataSerializable {
 
     private LocalDate infractionDate;
     private String licensePlateNumber;
-    private String violationCode; // reference to the infractionsCHI.csv
-    private String unitDescription; // agencia
+    private String violationCode;
+    private String unitDescription;
     private String communityAreaName;
     private double fineAmount;
+
+    public Infraction() { }
+
+
+    @Override
+    public void writeData(ObjectDataOutput objectDataOutput) throws IOException {
+        objectDataOutput.writeLong(infractionDate.toEpochDay());
+        objectDataOutput.writeUTF(licensePlateNumber);
+        objectDataOutput.writeUTF(violationCode);
+        objectDataOutput.writeUTF(unitDescription);
+        objectDataOutput.writeUTF(communityAreaName);
+        objectDataOutput.writeDouble(fineAmount);
+    }
+
+    @Override
+    public void readData(ObjectDataInput objectDataInput) throws IOException {
+        infractionDate = LocalDate.ofEpochDay(objectDataInput.readLong());
+        licensePlateNumber = objectDataInput.readUTF();
+        violationCode = objectDataInput.readUTF();
+        unitDescription = objectDataInput.readUTF();
+        communityAreaName = objectDataInput.readUTF();
+        fineAmount = objectDataInput.readDouble();
+    }
 }
