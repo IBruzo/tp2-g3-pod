@@ -1,11 +1,8 @@
 # Reporting
 
 ### TO DO
-
-    Run tests
     Run tests for 2 Nodes with the laptop
-    Maybe give more ram to the server?
-
+    Limit 0 Limitless
 
 ### Install Python Dependencies
 ```bash

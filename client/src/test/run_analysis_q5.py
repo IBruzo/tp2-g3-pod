@@ -16,7 +16,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    query_number = "1"
+    query_number = "5"
     in_path = args.in_path
     out_path = args.out_path
     plot_out_path = args.plot_out_path

@@ -40,7 +40,7 @@ public class Query5 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
-        String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
+        String timeOutputFileName = System.getProperty("timeOutputFileName", "time5");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 

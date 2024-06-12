@@ -46,9 +46,11 @@ public class Query4 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
+        String from = System.getProperty("from", DEFAULT_FROM); // directory
+        String to = System.getProperty("to", DEFAULT_TO); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
-        String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
+        String timeOutputFileName = System.getProperty("timeOutputFileName", "time4");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
@@ -67,7 +69,7 @@ public class Query4 {
 
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<List<String>> future = job
-                .mapper(new InfractionsInNeighborhoodMapper(DEFAULT_FROM, DEFAULT_TO))
+                .mapper(new InfractionsInNeighborhoodMapper(from, to))
                 .reducer(new InfractionsInNeighborhoodReducerFactory())
                 .submit(new InfractionsInNeighborhoodCollator());
 
