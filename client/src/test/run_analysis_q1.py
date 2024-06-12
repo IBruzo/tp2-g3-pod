@@ -1,7 +1,7 @@
 import argparse
-from query_lib.query_runner import run_query, read_output_file
+from query_lib.query_runner import run_query
 from query_lib.data_parser import parse_timestamps, analyze_data, save_results_to_csv
-from query_lib.plotter import plot_batch_size_evolution, plot_lines_evolution
+from query_lib.plotter import plot_batch_size_vs_read_time, plot_batch_size_vs_map_reduce_time
 from query_lib.config import cities_config
 
 def parse_args():
@@ -52,12 +52,14 @@ def main():
 
     parsed_data = analyze_data(data)
 
-    save_results_to_csv(parsed_data, plot_out_path, query_number, cities)
+    print(parsed_data)
+
+    save_results_to_csv(parsed_data, plot_out_path, query_number, cities, "1")
 
     for city in selected_cities:
         city_df = parsed_data[parsed_data['city'] == city]
-        plot_batch_size_evolution(city_df, city, plot_out_path, query_number)
-        plot_lines_evolution(city_df, city, plot_out_path, query_number)
+        plot_batch_size_vs_read_time(city_df, city, plot_out_path, query_number)
+        plot_batch_size_vs_map_reduce_time(city_df, city, plot_out_path, query_number)
 
 if __name__ == "__main__":
     main()
