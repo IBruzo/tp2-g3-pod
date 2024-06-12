@@ -52,8 +52,6 @@ def main():
 
     parsed_data = analyze_data(data)
 
-    print(parsed_data)
-
     save_results_to_csv(parsed_data, plot_out_path, query_number, cities, "1")
 
     for city in selected_cities:

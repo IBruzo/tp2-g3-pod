@@ -44,7 +44,6 @@ def main():
                 current_iteration += 1
                 print(f"Executing {current_iteration}/{total_iterations}...")
                 log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, date_from, date_to)
-                print(log_content)
                 timestamp_sets = parse_timestamps_2(log_content)
                 for timestamps in timestamp_sets:
                     timestamps['city'] = city

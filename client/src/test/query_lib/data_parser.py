@@ -68,6 +68,6 @@ def analyze_data(data):
     return df
 
 def save_results_to_csv(df, output_dir, query, city, report_number):
-    output_file = os.path.join(output_dir, f"results-{query}{city}-{report_number}.csv")
+    output_file = os.path.join(output_dir, f"results-{query}-{city[0]}-{report_number}.csv")
     df.to_csv(output_file, index=False)
     print(f"Results saved to {output_file}")

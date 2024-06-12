@@ -70,8 +70,8 @@ stop_server() {
     fi
 }
 
-QUERIES_PATH=($QUERY_1_PATH $QUERY_2_PATH $QUERY_3_PATH $QUERY_4_PATH $QUERY_5_PATH)
-# QUERIES_PATH=($QUERY_5_PATH)
+# QUERIES_PATH=($QUERY_1_PATH $QUERY_2_PATH $QUERY_3_PATH $QUERY_4_PATH $QUERY_5_PATH)
+QUERIES_PATH=($QUERY_1_PATH)
 
 for query_path in "${QUERIES_PATH[@]}"
 do
@@ -90,6 +90,6 @@ do
     done
 done
 
-# python3 $NOTIFIER_PATH --subject "Q1 & Q5 Finished Executing" --body "Baby come back" --to joaquingirod@gmail.com
+python3 $NOTIFIER_PATH --subject "Q1 & Q5 Finished Executing" --body "Baby come back" --to joaquingirod@gmail.com
 
 #python3 client/src/test/run_analysis_q2.py     --in_path /home/joaquin/Desktop/pod_data_sets/     --out_path /home/joaquin/Desktop/pod_data_outputs/     --plot_out_path /home/joaquin/Desktop/pod_data_plots/     --gigas_ram 6     --cities NYC
