@@ -47,53 +47,55 @@ public class DocumentUtils {
 
     }
 
-    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes,
-            int batchSize, int limit) throws IOException {
+    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
 
-        AtomicInteger csvLines = new AtomicInteger(0);
-        int limitCounter = limit;
+        String line;
+        int lineCount = 0;
 
-        try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
+       reader.readLine(); //skip titulo;
 
-            br.readLine(); //skip first line
+        Map<String, Infraction> batchMap = new HashMap<>();
+        // Read data rows in batches
+        while ((line = reader.readLine()) != null) {
+            // Process batch after every batchSize lines (optional)
+            if (totalLineLimit > 0 && lineCount >= totalLineLimit) {
+                break;
+            }
 
-            String line = null;
-            while ((line = br.readLine()) != null && (limit <= 0 || csvLines.get() < limit)) {
-                Map<String, Infraction> batchMap = new HashMap<>();
-                int count = 0;
+            String[] values = line.split(";");
+            LocalDate date = null;
+            try {
+                date = parseDate(values[indexes[0]]);
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+            String licensePlateNumber = values[indexes[1]];
+            String violationCode = values[indexes[2]];
+            String unitDescription = values[indexes[3]];
+            String fineAmount = values[indexes[4]];
+            String communityAreaName = values[indexes[5]];
 
-                while (count < batchSize && (line = br.readLine()) != null && ( limit<=0 || limitCounter >= count)) {
+            Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
+                    communityAreaName, Double.parseDouble(fineAmount));
 
-                    String[] values = line.split(";");
-                    LocalDate date = null;
-                    try {
-                        date = parseDate(values[indexes[0]]);
-                    } catch (Exception e) {
-                        // Handle parse exception
-                        e.printStackTrace();
-                        continue;
-                    }
-                    String licensePlateNumber = values[indexes[1]];
-                    String violationCode = values[indexes[2]];
-                    String unitDescription = values[indexes[3]];
-                    String fineAmount = values[indexes[4]];
-                    String communityAreaName = values[indexes[5]];
+            String key = "infraction-" + lineCount;
+            batchMap.put(key, infraction);
 
-                    Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
-                            communityAreaName, Double.parseDouble(fineAmount));
+            lineCount++;
 
-                    String key = "infraction-" + csvLines.getAndIncrement();
-                    batchMap.put(key, infraction);
-                    count++;
-                    limitCounter--;
-                }
-
-
+            if (lineCount % batchSize == 0) {
                 infractionMap.putAll(batchMap);
-
+                batchMap = new HashMap<>();
             }
         }
+
+        reader.close();
     }
+
+
+
 
     private static int[] orderHeader(String cityCode, String inPath){
 
