@@ -22,7 +22,12 @@ QUERY_4_PATH="${QUERY_BASE_DIR}run_analysis_q4.py"
 QUERY_5_PATH="${QUERY_BASE_DIR}run_analysis_q5.py"
 NOTIFIER_PATH="${QUERY_BASE_DIR}notifier.py"
 
-
+echo    "python3 $QUERY_2_PATH \
+    --in_path $IN_PATH \
+    --out_path $OUTPUT_PATH \
+    --plot_out_path $PLOT_OUTPUT_PATH \
+    --gigas_ram $CLIENT_RAM \
+    --cities $city"
 
 # Function to start the server
 start_server() {
@@ -63,18 +68,26 @@ stop_server() {
     fi
 }
 
-echo "Executing Q1"
-for city in "${CITIES[@]}"
+# QUERIES_PATH=($QUERY_1_PATH, $QUERY_2_PATH, $QUERY_3_PATH, $QUERY_4_PATH, $QUERY_5_PATH)
+QUERIES_PATH=($QUERY_1_PATH, $QUERY_5_PATH)
+
+for query_path in "${QUERIES_PATH[@]}"
 do
-    start_server
-    sleep 5
-    python3 $QUERY_1_PATH \
-    --in_path $IN_PATH \
-    --out_path $OUTPUT_PATH \
-    --plot_out_path $PLOT_OUTPUT_PATH \
-    --gigas_ram $CLIENT_RAM \
-    --cities $city
-    stop_server
+    echo "Executing ${query_path}"
+    for city in "${CITIES[@]}"
+    do
+        start_server
+        sleep 5
+        python3 $query_path \
+        --in_path $IN_PATH \
+        --out_path $OUTPUT_PATH \
+        --plot_out_path $PLOT_OUTPUT_PATH \
+        --gigas_ram $CLIENT_RAM \
+        --cities $city
+        stop_server
+    done
 done
 
-python3 $NOTIFIER_PATH --subject "Q1 Finished Executing" --body "Baby come back" --to joaquingirod@gmail.com
+python3 $NOTIFIER_PATH --subject "Q1 & Q5 Finished Executing" --body "Baby come back" --to joaquingirod@gmail.com
+
+#python3 client/src/test/run_analysis_q2.py     --in_path /home/joaquin/Desktop/pod_data_sets/     --out_path /home/joaquin/Desktop/pod_data_outputs/     --plot_out_path /home/joaquin/Desktop/pod_data_plots/     --gigas_ram 6     --cities NYC

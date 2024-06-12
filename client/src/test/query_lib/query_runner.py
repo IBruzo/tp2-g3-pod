@@ -1,8 +1,33 @@
 import subprocess
 import os
 
-def run_query(query_number, city, limit, batch_size, in_path, out_path, gigas_ram, output_file_name):
+def run_query(query_number, city, limit, batch_size, in_path, out_path, gigas_ram, output_file_name, number_of_agencies, date_from, date_to):
     working_directory = "client/target/tp2-g3-pod-client-1.0-SNAPSHOT"
+    if number_of_agencies != None:
+        command = (
+            f"sh run-query{query_number}.sh"
+            f" -Xmx{gigas_ram}g"
+            f" -Dcity={city}"
+            f" -Dlimit={limit}"
+            f" -DbatchSize={batch_size}"
+            f" -DinPath={in_path}"
+            f" -DoutPath={out_path}"
+            f" -DoutputFileName={output_file_name}"
+            f" -Dn={number_of_agencies}"
+        )
+    if date_to != None:
+        command = (
+            f"sh run-query{query_number}.sh"
+            f" -Xmx{gigas_ram}g"
+            f" -Dcity={city}"
+            f" -Dlimit={limit}"
+            f" -DbatchSize={batch_size}"
+            f" -DinPath={in_path}"
+            f" -DoutPath={out_path}"
+            f" -DoutputFileName={output_file_name}"
+            f" -Dfrom={date_from}"
+            f" -Dto={date_to}"
+        )
     command = (
         f"sh run-query{query_number}.sh"
         f" -Xmx{gigas_ram}g"
@@ -13,6 +38,7 @@ def run_query(query_number, city, limit, batch_size, in_path, out_path, gigas_ra
         f" -DoutPath={out_path}"
         f" -DoutputFileName={output_file_name}"
     )
+
     run_command(command, working_directory)
     return read_output_file(out_path, query_number)
 

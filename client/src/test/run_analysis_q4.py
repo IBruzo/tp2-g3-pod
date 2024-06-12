@@ -16,15 +16,13 @@ def parse_args():
 def main():
     args = parse_args()
 
-    query_number = "1"
+    query_number = "4"
     in_path = args.in_path
     out_path = args.out_path
     plot_out_path = args.plot_out_path
     gigas_ram = args.gigas_ram
     cities = args.cities
-    number_of_agencies = "0"
-    date_from = None
-    date_to = None
+    number_of_agencies = None
 
     if cities == 'both':
         selected_cities = cities_config.keys()
@@ -40,15 +38,16 @@ def main():
         config = cities_config[city]
         for lines in config["line_counts"]:
             for batch_size in config["batch_sizes"]:
-                current_iteration += 1
-                print(f"Executing {current_iteration}/{total_iterations}...")
-                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, date_from, date_to)
-                timestamps = parse_timestamps(log_content)
-                if timestamps:
-                    timestamps['city'] = city
-                    timestamps['lines'] = lines
-                    timestamps['batch_size'] = batch_size
-                    data.append(timestamps)
+                for date_range in config["date_range"]:
+                    current_iteration += 1
+                    print(f"Executing {current_iteration}/{total_iterations}...")
+                    log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, date_range[0], date_range[1])
+                    timestamps = parse_timestamps(log_content)
+                    if timestamps:
+                        timestamps['city'] = city
+                        timestamps['lines'] = lines
+                        timestamps['batch_size'] = batch_size
+                        data.append(timestamps)
 
     parsed_data = analyze_data(data)
 
