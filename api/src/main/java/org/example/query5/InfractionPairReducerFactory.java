@@ -2,16 +2,17 @@ package org.example.query5;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
+import org.example.models.Pair;
 
-public class InfractionPairReducerFactory implements ReducerFactory<String, Double, Double> {
+public class InfractionPairReducerFactory implements ReducerFactory<String, Pair<Integer, Double>, Double> {
 
     @Override
-    public Reducer<Double, Double> newReducer(String key) {
+    public Reducer<Pair<Integer, Double>, Double> newReducer(String key) {
         return new InfractionPairReducer();
     }
 
 
-    private class InfractionPairReducer extends Reducer<Double, Double> {
+    private class InfractionPairReducer extends Reducer<Pair<Integer, Double>, Double> {
         private int count;
         private double totalSum;
 
@@ -22,9 +23,9 @@ public class InfractionPairReducerFactory implements ReducerFactory<String, Doub
         }
 
         @Override
-        public void reduce(Double fineAmount) {
-            count++;
-            totalSum += fineAmount;
+        public void reduce(Pair<Integer, Double> fineAmount) {
+            count+= fineAmount.getFirst();
+            totalSum += fineAmount.getSecond();
         }
 
         @Override

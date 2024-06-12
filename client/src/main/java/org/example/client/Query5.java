@@ -10,6 +10,7 @@ import com.hazelcast.mapreduce.KeyValueSource;
 import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.models.Pair;
+import org.example.query3.InfractionPercentageCombinerFactory;
 import org.example.query5.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,9 @@ public class Query5 {
     private static final Logger logger = LoggerFactory.getLogger(Query5.class);
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
-    private static final String DEFAULT_CITY = "CHI";
-    private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
+    private static final String DEFAULT_CITY = "NYC";
+    private static final String DEFAULT_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
+    private static final String DEFAULT_WRITE_DIRECTORY = "C:\\Users\\OEM\\Desktop\\facult\\POD\\tp2-g3-pod\\client\\src\\main\\resources\\";
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -39,7 +40,7 @@ public class Query5 {
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
-        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
+        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
         String timeOutputFileName = System.getProperty("timeOutputFileName", "time5");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
@@ -63,6 +64,7 @@ public class Query5 {
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<Map<String, Double>> infractionFineFuture = infractionFineJob
                 .mapper(new InfractionPairMapper())
+                .combiner(new InfractionPairCombinerFactory())
                 .reducer(new InfractionPairReducerFactory())
                 .submit(new InfractionPairCollator(codeInfraction));
 

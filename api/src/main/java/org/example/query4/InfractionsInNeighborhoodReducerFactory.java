@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
-public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<String, Pair<String,Integer>, Map<String,Integer>> {
+public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<String, Map<String, Integer>, Map<String,Integer>> {
     @Override
-    public Reducer<Pair<String,Integer>, Map<String,Integer>> newReducer(String key) {
+    public Reducer<Map<String, Integer>, Map<String,Integer>> newReducer(String key) {
         return new InfractionsInNeighborhoodReducer();
     }
 
-    private class InfractionsInNeighborhoodReducer extends Reducer<Pair<String,Integer>, Map<String,Integer>> {
+    private class InfractionsInNeighborhoodReducer extends Reducer<Map<String, Integer>, Map<String,Integer>> {
         private Map<String,Integer> result = new HashMap<>();
 
         @Override
@@ -23,12 +23,8 @@ public class InfractionsInNeighborhoodReducerFactory implements ReducerFactory<S
         }
 
         @Override
-        public void reduce(Pair<String,Integer> value) {
-            if (result.containsKey(value.getFirst())) {
-                result.put(value.getFirst(), result.get(value.getFirst()) + value.getSecond());
-            } else {
-                result.put(value.getFirst(), value.getSecond());
-            }
+        public void reduce(Map<String, Integer> value) {
+            value.forEach((k, v) -> result.merge(k, v, Integer::sum));
         }
 
         @Override

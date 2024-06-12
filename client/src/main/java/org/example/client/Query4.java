@@ -13,6 +13,7 @@ import com.hazelcast.mapreduce.KeyValueSource;
 import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.query4.InfractionsInNeighborhoodCollator;
+import org.example.query4.InfractionsInNeighborhoodCombinerFactory;
 import org.example.query4.InfractionsInNeighborhoodMapper;
 import org.example.query4.InfractionsInNeighborhoodReducerFactory;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ public class Query4 {
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<List<String>> future = job
                 .mapper(new InfractionsInNeighborhoodMapper(from, to))
+                .combiner(new InfractionsInNeighborhoodCombinerFactory())
                 .reducer(new InfractionsInNeighborhoodReducerFactory())
                 .submit(new InfractionsInNeighborhoodCollator());
 

@@ -2,7 +2,6 @@ package org.example.query2;
 
 import com.hazelcast.mapreduce.Reducer;
 import com.hazelcast.mapreduce.ReducerFactory;
-import org.example.models.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +14,7 @@ public class PopularInfractionsReducerFactory implements ReducerFactory<String, 
     }
 
     private class PopularInfractionsReducer extends Reducer<Map<String, Integer>, Map<String, Integer>> {
-        private Map<String, Integer> result = new HashMap<>();
+        private Map<String, Integer> result;
 
         @Override
         public void beginReduce() {

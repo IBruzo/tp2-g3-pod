@@ -11,6 +11,7 @@ import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.models.Pair;
 import org.example.query3.InfractionPercentageCollator;
+import org.example.query3.InfractionPercentageCombinerFactory;
 import org.example.query3.InfractionPercentageMapper;
 import org.example.query3.InfractionPercentageReducerFactory;
 import org.slf4j.Logger;
@@ -63,6 +64,7 @@ public class Query3 {
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<List<Pair<String, Double>>> future = job
                 .mapper(new InfractionPercentageMapper())
+                .combiner(new InfractionPercentageCombinerFactory())
                 .reducer(new InfractionPercentageReducerFactory())
                 .submit(new InfractionPercentageCollator());
 
