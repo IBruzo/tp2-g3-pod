@@ -6,6 +6,7 @@ import org.example.client.models.LogEntry;
 import org.example.models.Infraction;
 import org.example.models.Pair;
 
+import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -33,61 +34,17 @@ public class DocumentUtils {
     private static final String CSV_CODES = "infractions";
 
     public void readCSV(IMap<String, Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
-            String inPath, int batchSize, int limit) {
+            String inPath, int batchSize, int limit)  {
 
-        try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_FILE + cityCode + ".csv"))) {
-            String line = br.readLine();
-            if (line == null) {
-                System.out.println("Empty CSV");
-                return;
-            }
-
-            String[] header = line.split(";");
-
-            int[] indexes = { 0, 0, 0, 0, 0, 0 }; // ORDEN DE LOS INDICES CON LOS CAMPOS: date plate violation agency
-
-            for (int i = 0; i <= 5; i++) {
-                header[i] = header[i].toLowerCase();
-                if (header[i].contains("date")) {
-                    indexes[0] = i;
-                } else if (header[i].contains("plate")) {
-                    indexes[1] = i;
-                } else if (header[i].contains("code")) {
-                    indexes[2] = i;
-                } else if (header[i].equals("unit_description") || header[i].equals("issuing agency")) {
-                    indexes[3] = i;
-                } else if (header[i].contains("fine")) {
-                    indexes[4] = i;
-                } else if (header[i].equals("community_area_name") || header[i].equals("county name")) {
-                    indexes[5] = i;
-                }
-            }
-
-            parseInfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", indexes, batchSize, limit);
-            // infractionList.addAll( parseInfractionsFile(inPath + CSV_FILE + cityCode +
-            // ".csv",indexes));
+        try {
+            parseInfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_CODES + cityCode + ".csv"))) {
-            String line = br.readLine();
-            if (line == null) {
-                System.out.println("Empty CSV");
-                return;
-            }
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(";");
-                if (values.length == 2) {
-                    String code = values[0];
-                    String description = values[1];
-                    codeInfraction.put(code, description);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        readCodesFile(codeInfraction,cityCode,inPath);
+
     }
 
     public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes,
@@ -98,7 +55,7 @@ public class DocumentUtils {
 
         try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
 
-            br.readLine();
+            br.readLine(); //skip first line
 
             String line = null;
             while ((line = br.readLine()) != null && (limit <= 0 || csvLines.get() < limit)) {
@@ -130,10 +87,67 @@ public class DocumentUtils {
                     count++;
                     limitCounter--;
                 }
-                // Process the batch map before moving to the next batch
+
+
                 infractionMap.putAll(batchMap);
 
             }
+        }
+    }
+
+    private static int[] orderHeader(String cityCode, String inPath){
+
+        int[] indexes = { 0, 0, 0, 0, 0, 0 }; // ORDEN DE LOS INDICES CON LOS CAMPOS: date plate violation agency
+
+        try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_FILE + cityCode + ".csv"))) {
+            String line = br.readLine();
+            if (line == null) {
+                System.out.println("Empty CSV");
+                return null;
+            }
+
+            String[] header = line.split(";");
+
+            for (int i = 0; i <= 5; i++) {
+                header[i] = header[i].toLowerCase();
+                if (header[i].contains("date")) {
+                    indexes[0] = i;
+                } else if (header[i].contains("plate")) {
+                    indexes[1] = i;
+                } else if (header[i].contains("code")) {
+                    indexes[2] = i;
+                } else if (header[i].equals("unit_description") || header[i].equals("issuing agency")) {
+                    indexes[3] = i;
+                } else if (header[i].contains("fine")) {
+                    indexes[4] = i;
+                } else if (header[i].equals("community_area_name") || header[i].equals("county name")) {
+                    indexes[5] = i;
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return indexes;
+    }
+
+    private static void readCodesFile(Map<String, String> codeInfraction, String cityCode, String inPath){
+        try (BufferedReader br = new BufferedReader(new FileReader(inPath + CSV_CODES + cityCode + ".csv"))) {
+            String line = br.readLine();
+            if (line == null) {
+                System.out.println("Empty CSV");
+                return;
+            }
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(";");
+                if (values.length == 2) {
+                    String code = values[0];
+                    String description = values[1];
+                    codeInfraction.put(code, description);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
