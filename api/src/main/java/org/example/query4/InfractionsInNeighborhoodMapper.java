@@ -4,12 +4,12 @@ import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;
 import org.example.models.Infraction;
 import org.example.models.Pair;
+import org.example.models.Q4Infraction;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-@SuppressWarnings("deprecation")
-public class InfractionsInNeighborhoodMapper implements Mapper<String, Infraction, String, Pair<String,Integer>> {
+public class InfractionsInNeighborhoodMapper implements Mapper<String, Q4Infraction, String, Pair<String,Integer>> {
     private final LocalDate from;
     private final LocalDate to;
 
@@ -21,7 +21,7 @@ public class InfractionsInNeighborhoodMapper implements Mapper<String, Infractio
     }
 
     @Override
-    public void map(String key, Infraction infraction, Context<String, Pair<String,Integer>> context) {
+    public void map(String key, Q4Infraction infraction, Context<String, Pair<String,Integer>> context) {
         LocalDate infractionDate = infraction.getInfractionDate();
         if (infractionDate != null && !infractionDate.isBefore(from) && !infractionDate.isAfter(to)) {
             context.emit(infraction.getCommunityAreaName(), new Pair<>(infraction.getLicensePlateNumber(),1));

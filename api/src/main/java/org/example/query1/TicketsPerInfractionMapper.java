@@ -4,17 +4,17 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.mapreduce.Context;
 import com.hazelcast.mapreduce.Mapper;
-import org.example.models.Infraction;
+import org.example.models.Q1Infraction;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings("deprecation")
-public class TicketsPerInfractionMapper implements Mapper<String, Infraction, String, Integer>, HazelcastInstanceAware {
+
+public class TicketsPerInfractionMapper implements Mapper<String, Q1Infraction, String, Integer>, HazelcastInstanceAware {
     private transient Set<String> codeMap;
 
     @Override
-    public void map(String key, Infraction value, Context<String, Integer> context) {
+    public void map(String key, Q1Infraction value, Context<String, Integer> context) {
         if (codeMap != null && codeMap.contains(value.getViolationCode())) {
             context.emit(value.getViolationCode(), 1);
         }

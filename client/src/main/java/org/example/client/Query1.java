@@ -11,7 +11,7 @@ import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
 import org.example.client.models.LogEntry;
-import org.example.models.Infraction;
+import org.example.models.Q1Infraction;
 import org.example.query1.TicketsPerInfractionCollator;
 import org.example.query1.TicketsPerInfractionCombinerFactory;
 import org.example.query1.TicketsPerInfractionMapper;
@@ -43,27 +43,29 @@ public class Query1 {
         String cityProperty = System.getProperty("city", DEFAULT_CITY);
         String inPath = System.getProperty("inPath", DEFAULT_DIRECTORY); // directory
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
-        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
+        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(100)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
+        if(batchSize > limit)
+            batchSize = limit;
         String timeOutputFileName = System.getProperty("timeOutputFileName", "time1");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
-        IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
+        IMap<String, Q1Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
 
         DocumentUtils documentUtils = new DocumentUtils();
 
         logEntries.add(createLogEntry("Inicio de la lectura del archivo"));
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
+        documentUtils.readQ1CSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
         logEntries.add(createLogEntry("Fin de la lectura del archivo"));
 
         Set<String> validKeys = new HashSet<>(codeInfraction.keySet());
         hazelcastInstance.getList("validKeys").addAll(codeInfraction.keySet());
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
-        KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap); // .fromList(infractionList);
-        Job<String, Infraction> job = jobTracker.newJob(source);
+        KeyValueSource<String, Q1Infraction> source = KeyValueSource.fromMap(infractionMap); // .fromList(infractionList);
+        Job<String, Q1Infraction> job = jobTracker.newJob(source);
 
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<Map<String, Integer>> future = job

@@ -11,7 +11,7 @@ import com.hazelcast.mapreduce.Job;
 import com.hazelcast.mapreduce.JobTracker;
 import com.hazelcast.mapreduce.KeyValueSource;
 import org.example.client.models.LogEntry;
-import org.example.models.Infraction;
+import org.example.models.Q4Infraction;
 import org.example.query4.InfractionsInNeighborhoodCollator;
 import org.example.query4.InfractionsInNeighborhoodCombinerFactory;
 import org.example.query4.InfractionsInNeighborhoodMapper;
@@ -32,8 +32,8 @@ public class Query4 {
 
     private static final String DEFAULT_ADDRESS = "127.0.0.1:5701";
     private static final String DEFAULT_CITY = "NYC";
-    private static final String DEFAULT_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
-    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/inakibengolea/tp2-g3-pod/client/src/main/resources/";
+    private static final String DEFAULT_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/csv-tp2/";
+    private static final String DEFAULT_WRITE_DIRECTORY = "/Users/felixlopezmenardi/Documents/pod/TPE-2/write/";
     private static final String DEFAULT_FROM = "01/01/2017";
     private static final String DEFAULT_TO = "31/12/2017";
 
@@ -49,24 +49,26 @@ public class Query4 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         String from = System.getProperty("from", DEFAULT_FROM); // directory
         String to = System.getProperty("to", DEFAULT_TO); // directory
-        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(1000000)));
-        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(0)));
+        int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(100)));
+        int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
+        if(batchSize > limit)
+            batchSize = limit;
         String timeOutputFileName = System.getProperty("timeOutputFileName", "time4");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
-        IMap<String, Infraction> infractionMap = hazelcastInstance.getMap("infractions");
+        IMap<String, Q4Infraction> infractionMap = hazelcastInstance.getMap("infractions");
         IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
 
         DocumentUtils documentUtils = new DocumentUtils();
 
         logEntries.add(createLogEntry("Inicio de la lectura del archivo"));
-        documentUtils.readCSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
+        documentUtils.readQ4CSV(infractionMap, codeInfraction, cityProperty, inPath, batchSize, limit);
         logEntries.add(createLogEntry("Fin de la lectura del archivo"));
 
         JobTracker jobTracker = hazelcastInstance.getJobTracker("default");
-        KeyValueSource<String, Infraction> source = KeyValueSource.fromMap(infractionMap);
-        Job<String, Infraction> job = jobTracker.newJob(source);
+        KeyValueSource<String, Q4Infraction> source = KeyValueSource.fromMap(infractionMap);
+        Job<String, Q4Infraction> job = jobTracker.newJob(source);
 
         logEntries.add(createLogEntry("Inicio del trabajo map/reduce"));
         ICompletableFuture<List<String>> future = job

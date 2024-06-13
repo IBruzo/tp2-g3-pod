@@ -3,8 +3,7 @@ package org.example.client;
 import com.hazelcast.core.IMap;
 import lombok.Cleanup;
 import org.example.client.models.LogEntry;
-import org.example.models.Infraction;
-import org.example.models.Pair;
+import org.example.models.*;
 
 import javax.print.DocFlavor;
 import java.io.BufferedReader;
@@ -33,11 +32,11 @@ public class DocumentUtils {
     private static final String CSV_FILE = "tickets";
     private static final String CSV_CODES = "infractions";
 
-    public void readCSV(IMap<String, Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
+    public void readQ1CSV(IMap<String, Q1Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
             String inPath, int batchSize, int limit)  {
 
         try {
-            parseInfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
+            parseQ1InfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,7 +46,7 @@ public class DocumentUtils {
 
     }
 
-    public static void parseInfractionsFile(IMap<String, Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+    public static void parseQ1InfractionsFile(IMap<String, Q1Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
 
         String line;
@@ -55,7 +54,156 @@ public class DocumentUtils {
 
        reader.readLine(); //skip titulo;
 
-        Map<String, Infraction> batchMap = new HashMap<>();
+        Map<String, Q1Infraction> batchMap = new HashMap<>();
+        // Read data rows in batches
+        while ((line = reader.readLine()) != null) {
+            // Process batch after every batchSize lines (optional)
+            if (totalLineLimit > 0 && lineCount >= totalLineLimit) {
+                break;
+            }
+
+            String[] values = line.split(";");
+            String violationCode = values[indexes[2]];
+
+            Q1Infraction infraction = new Q1Infraction(violationCode);
+
+            String key = "infraction-" + lineCount;
+            batchMap.put(key, infraction);
+
+            lineCount++;
+
+            if (lineCount % batchSize == 0) {
+                infractionMap.putAll(batchMap);
+                batchMap = new HashMap<>();
+            }
+        }
+
+        reader.close();
+    }
+
+    public void readQ2CSV(IMap<String, Q2Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
+                          String inPath, int batchSize, int limit)  {
+
+        try {
+            parseQ2InfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        readCodesFile(codeInfraction,cityCode,inPath);
+
+    }
+
+    public static void parseQ2InfractionsFile(IMap<String, Q2Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
+
+        String line;
+        int lineCount = 0;
+
+        reader.readLine(); //skip titulo;
+
+        Map<String, Q2Infraction> batchMap = new HashMap<>();
+        // Read data rows in batches
+        while ((line = reader.readLine()) != null) {
+            // Process batch after every batchSize lines (optional)
+            if (totalLineLimit > 0 && lineCount >= totalLineLimit) {
+                break;
+            }
+
+            String[] values = line.split(";");
+            String violationCode = values[indexes[2]];
+            String communityAreaName = values[indexes[5]];
+
+            Q2Infraction infraction = new Q2Infraction(violationCode, communityAreaName);
+
+            String key = "infraction-" + lineCount;
+            batchMap.put(key, infraction);
+
+            lineCount++;
+
+            if (lineCount % batchSize == 0) {
+                infractionMap.putAll(batchMap);
+                batchMap = new HashMap<>();
+            }
+        }
+
+        reader.close();
+    }
+
+    public void readQ3CSV(IMap<String, Q3Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
+                          String inPath, int batchSize, int limit)  {
+
+        try {
+            parseQ3InfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        readCodesFile(codeInfraction,cityCode,inPath);
+
+    }
+
+    public static void parseQ3InfractionsFile(IMap<String, Q3Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
+
+        String line;
+        int lineCount = 0;
+
+        reader.readLine(); //skip titulo;
+
+        Map<String, Q3Infraction> batchMap = new HashMap<>();
+        // Read data rows in batches
+        while ((line = reader.readLine()) != null) {
+            // Process batch after every batchSize lines (optional)
+            if (totalLineLimit > 0 && lineCount >= totalLineLimit) {
+                break;
+            }
+
+            String[] values = line.split(";");
+            String unitDescription = values[indexes[3]];
+            String fineAmount = values[indexes[4]];
+
+            Q3Infraction infraction = new Q3Infraction(unitDescription, Double.parseDouble(fineAmount));
+
+            String key = "infraction-" + lineCount;
+            batchMap.put(key, infraction);
+
+            lineCount++;
+
+            if (lineCount % batchSize == 0) {
+                infractionMap.putAll(batchMap);
+                batchMap = new HashMap<>();
+            }
+        }
+
+        reader.close();
+    }
+
+    public void readQ4CSV(IMap<String, Q4Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
+                        String inPath, int batchSize, int limit)  {
+
+        try {
+            parseQ4InfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        readCodesFile(codeInfraction,cityCode,inPath);
+
+    }
+
+    public static void parseQ4InfractionsFile(IMap<String, Q4Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
+
+        String line;
+        int lineCount = 0;
+
+        reader.readLine(); //skip titulo;
+
+        Map<String, Q4Infraction> batchMap = new HashMap<>();
         // Read data rows in batches
         while ((line = reader.readLine()) != null) {
             // Process batch after every batchSize lines (optional)
@@ -72,13 +220,9 @@ public class DocumentUtils {
                 continue;
             }
             String licensePlateNumber = values[indexes[1]];
-            String violationCode = values[indexes[2]];
-            String unitDescription = values[indexes[3]];
-            String fineAmount = values[indexes[4]];
             String communityAreaName = values[indexes[5]];
 
-            Infraction infraction = new Infraction(date, licensePlateNumber, violationCode, unitDescription,
-                    communityAreaName, Double.parseDouble(fineAmount));
+            Q4Infraction infraction = new Q4Infraction(licensePlateNumber, communityAreaName, date);
 
             String key = "infraction-" + lineCount;
             batchMap.put(key, infraction);
@@ -94,8 +238,55 @@ public class DocumentUtils {
         reader.close();
     }
 
+    public void readQ5CSV(IMap<String, Q5Infraction> infractionMap, IMap<String, String> codeInfraction, String cityCode,
+                        String inPath, int batchSize, int limit)  {
 
+        try {
+            parseQ5InfractionsFile(infractionMap, inPath + CSV_FILE + cityCode + ".csv", orderHeader(cityCode,inPath), batchSize, limit);
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        readCodesFile(codeInfraction,cityCode,inPath);
+
+    }
+
+    public static void parseQ5InfractionsFile(IMap<String, Q5Infraction> infractionMap, String path, int[] indexes, int batchSize, int totalLineLimit) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(Path.of(path))));
+
+        String line;
+        int lineCount = 0;
+
+        reader.readLine(); //skip titulo;
+
+        Map<String, Q5Infraction> batchMap = new HashMap<>();
+        // Read data rows in batches
+        while ((line = reader.readLine()) != null) {
+            // Process batch after every batchSize lines (optional)
+            if (totalLineLimit > 0 && lineCount >= totalLineLimit) {
+                break;
+            }
+
+            String[] values = line.split(";");
+            String violationCode = values[indexes[2]];
+            String fineAmount = values[indexes[4]];
+
+            Q5Infraction infraction = new Q5Infraction(violationCode, Double.parseDouble(fineAmount));
+
+            String key = "infraction-" + lineCount;
+            batchMap.put(key, infraction);
+
+            lineCount++;
+
+            if (lineCount % batchSize == 0) {
+                infractionMap.putAll(batchMap);
+                batchMap = new HashMap<>();
+            }
+        }
+
+        reader.close();
+    }
 
     private static int[] orderHeader(String cityCode, String inPath){
 
