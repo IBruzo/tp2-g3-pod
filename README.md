@@ -9,7 +9,7 @@
 ## Prerrequisitos
 Para poder correr el proyecto se deberá tener instalado y funcional:
 - [Maven](https://maven.apache.org/install.html)
-- [Java 20](https://www.java.com/en/download/help/download_options.html)
+- [Java 17](https://www.java.com/en/download/help/download_options.html)
 
 ## Instalacion
 1) Clonar el repositorio del proyecto. Para esto se podrá utilizar la consola con el comando:
