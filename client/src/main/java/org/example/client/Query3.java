@@ -50,8 +50,8 @@ public class Query3 {
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
-        IMap<String, Q3Infraction> infractionMap = hazelcastInstance.getMap("infractions");
-        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
+        IMap<String, Q3Infraction> infractionMap = hazelcastInstance.getMap("infractions3");
+        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes3");
 
         DocumentUtils documentUtils = new DocumentUtils();
 

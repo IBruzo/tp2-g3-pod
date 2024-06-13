@@ -18,7 +18,7 @@ def parse_timestamps(log_content):
 
     return timestamps
 
-def parse_timestamps_2(log_content):
+def parse_timestamps_query_5(log_content):
     start_read_pattern = re.compile(r'Inicio de la lectura del archivo')
     end_read_pattern = re.compile(r'Fin de la lectura del archivo')
     start_mapreduce_pattern = re.compile(r'Inicio del trabajo map/reduce')
@@ -64,6 +64,21 @@ def analyze_data(data):
 
     df['read_time'] = (df['end_read'] - df['start_read']).dt.total_seconds()
     df['mapreduce_time'] = (df['end_mapreduce'] - df['start_mapreduce']).dt.total_seconds()
+
+    return df
+
+def analyze_data_query_5(data):
+    df = pd.DataFrame(data)
+    df['start_read'] = pd.to_datetime(df['start_read'], format='%d/%m/%Y %H:%M:%S:%f')
+    df['end_read'] = pd.to_datetime(df['end_read'], format='%d/%m/%Y %H:%M:%S:%f')
+    df['start_mapreduce'] = pd.to_datetime(df['start_mapreduce'], format='%d/%m/%Y %H:%M:%S:%f')
+    df['end_mapreduce'] = pd.to_datetime(df['end_mapreduce'], format='%d/%m/%Y %H:%M:%S:%f')
+    df['start_mapreduce_2'] = pd.to_datetime(df['start_mapreduce_2'], format='%d/%m/%Y %H:%M:%S:%f')
+    df['end_mapreduce_2'] = pd.to_datetime(df['end_mapreduce_2'], format='%d/%m/%Y %H:%M:%S:%f')
+
+    df['read_time'] = (df['end_read'] - df['start_read']).dt.total_seconds()
+    df['mapreduce_time'] = (df['end_mapreduce'] - df['start_mapreduce']).dt.total_seconds()
+    df['mapreduce_time_2'] = (df['end_mapreduce_2'] - df['start_mapreduce_2']).dt.total_seconds()
 
     return df
 

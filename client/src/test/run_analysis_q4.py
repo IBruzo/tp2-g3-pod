@@ -10,6 +10,7 @@ def parse_args():
     parser.add_argument('--out_path', type=str, required=True, help='Output file path')
     parser.add_argument('--plot_out_path', type=str, required=True, help='Plot output file path')
     parser.add_argument('--gigas_ram', type=str, required=True, help='RAM allocation in gigabytes')
+    parser.add_argument('--addresses', type=str, required=True, help='Addresses for the Hazelcast Server')
     parser.add_argument('--cities', type=str, nargs='+', choices=['NYC', 'CHI', 'both'], default='both', help='Cities to test: NYC, CHI, or both')
     return parser.parse_args()
 
@@ -22,6 +23,7 @@ def main():
     plot_out_path = args.plot_out_path
     gigas_ram = args.gigas_ram
     cities = args.cities
+    addresses = args.addresses
     number_of_agencies = None
 
     if cities == 'both':
@@ -42,7 +44,7 @@ def main():
             for batch_size in config["batch_sizes"]:
                 current_iteration += 1
                 print(f"Executing {current_iteration}/{total_iterations}...")
-                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, None, None)
+                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, None, None, addresses)
                 timestamps = parse_timestamps(log_content)
                 if timestamps:
                     timestamps['city'] = city
@@ -52,7 +54,7 @@ def main():
             for date_range in config["date_range"]:
                 current_iteration += 1
                 print(f"Executing {current_iteration}/{total_iterations}...")
-                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, date_range[0], date_range[1])
+                log_content = run_query(query_number, city, str(lines), str(batch_size), in_path, out_path, gigas_ram, f"time1-{str(current_iteration)}", number_of_agencies, date_range[0], date_range[1], addresses)
                 timestamps = parse_timestamps(log_content)
                 if timestamps:
                     timestamps['city'] = city

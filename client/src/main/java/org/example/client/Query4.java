@@ -57,8 +57,8 @@ public class Query4 {
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
-        IMap<String, Q4Infraction> infractionMap = hazelcastInstance.getMap("infractions");
-        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
+        IMap<String, Q4Infraction> infractionMap = hazelcastInstance.getMap("infractions4");
+        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes4");
 
         DocumentUtils documentUtils = new DocumentUtils();
 

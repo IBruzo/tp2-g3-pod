@@ -42,14 +42,14 @@ public class Query2 {
         String outPath = System.getProperty("outPath", DEFAULT_WRITE_DIRECTORY); // directory
         int batchSize = Integer.parseInt(System.getProperty("batchSize", String.valueOf(100)));
         int limit = Integer.parseInt(System.getProperty("limit", String.valueOf(1000)));
-        if(batchSize > limit)
+        if (batchSize > limit)
             batchSize = limit;
         String timeOutputFileName = System.getProperty("timeOutputFileName", "time2");
 
         HazelcastInstance hazelcastInstance = HazelConfig.connect(addresses);
 
-        IMap<String, Q2Infraction> infractionMap = hazelcastInstance.getMap("infractions");
-        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes");
+        IMap<String, Q2Infraction> infractionMap = hazelcastInstance.getMap("infractions2");
+        IMap<String, String> codeInfraction = hazelcastInstance.getMap("codes2");
 
         DocumentUtils documentUtils = new DocumentUtils();
 

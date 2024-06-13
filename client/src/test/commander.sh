@@ -2,8 +2,8 @@
 # Define paths and parameters
 
 # Check if the correct number of arguments are provided
-if [ "$#" -ne 5 ]; then
-    echo "Usage: $0 CLIENT_RAM SERVER_RAM PLOT_OUTPUT_PATH IN_PATH OUTPUT_PATH"
+if [ "$#" -ne 6 ]; then
+    echo "Usage: $0 CLIENT_RAM SERVER_RAM PLOT_OUTPUT_PATH IN_PATH OUTPUT_PATH ADDRESSES"
     exit 1
 fi
 
@@ -12,6 +12,7 @@ SERVER_RAM="$2"
 PLOT_OUTPUT_PATH="$3"
 IN_PATH="$4"
 OUTPUT_PATH="$5"
+ADDRESSES="$6"
 
 CITIES=("NYC" "CHI")
 QUERY_BASE_DIR="client/src/test/"
@@ -70,8 +71,8 @@ stop_server() {
     fi
 }
 
-# QUERIES_PATH=($QUERY_1_PATH $QUERY_2_PATH $QUERY_3_PATH $QUERY_4_PATH $QUERY_5_PATH)
-QUERIES_PATH=($QUERY_1_PATH)
+QUERIES_PATH=($QUERY_1_PATH $QUERY_2_PATH $QUERY_3_PATH $QUERY_4_PATH $QUERY_5_PATH)
+# QUERIES_PATH=($QUERY_1_PATH)
 
 for query_path in "${QUERIES_PATH[@]}"
 do
@@ -85,11 +86,15 @@ do
         --out_path $OUTPUT_PATH \
         --plot_out_path $PLOT_OUTPUT_PATH \
         --gigas_ram $CLIENT_RAM \
-        --cities $city
+        --cities $city \
+        --addresses $ADDRESSES
         stop_server
     done
+    sleep 30
 done
 
 python3 $NOTIFIER_PATH --subject "Q1 & Q5 Finished Executing" --body "Baby come back" --to joaquingirod@gmail.com
 
-#python3 client/src/test/run_analysis_q2.py     --in_path /home/joaquin/Desktop/pod_data_sets/     --out_path /home/joaquin/Desktop/pod_data_outputs/     --plot_out_path /home/joaquin/Desktop/pod_data_plots/     --gigas_ram 6     --cities NYC
+# python3 client/src/test/run_analysis_q2.py     --in_path /home/joaquin/Desktop/pod_data_sets/     --out_path /home/joaquin/Desktop/pod_data_outputs/     --plot_out_path /home/joaquin/Desktop/pod_data_plots/     --gigas_ram 6     --cities NYC
+
+# descomentar stop address, descomentar seccon de start server, poner todas las queries a andar, activar mail de finalziacion, cambiar IP del script a que sea localhsot
